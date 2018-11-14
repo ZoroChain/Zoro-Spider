@@ -1,0 +1,14 @@
+﻿{
+  "ApplicationConfiguration": {
+    "MySql": {
+      "database": "block",
+      "server": "106.15.200.244",
+      "user id": "root",
+      "Password": "jingmian@mysql",
+      "sslmode": "None"
+    },
+    "RPC": {
+      "url": "http://115.159.53.39:20332"
+    }
+  }
+}

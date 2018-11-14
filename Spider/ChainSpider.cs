@@ -1,0 +1,98 @@
+﻿using System;
+using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+
+namespace Zoro.Spider
+{
+    class ChainSpider : IDisposable
+    {
+        private Task task;
+        private WebClient wc = new WebClient();
+        private SaveBlock block;
+
+        private UInt160 chainHash;
+        private uint currentHeight = 0;
+
+        public ChainSpider(UInt160 chainHash)
+        {
+            this.chainHash = chainHash;
+
+            block = new SaveBlock(chainHash);
+        }
+
+        public void Start()
+        {
+            task = Task.Factory.StartNew(() =>
+            {
+                Process();
+            });
+        }
+
+        public void Dispose()
+        {
+            task.Dispose();
+        }
+
+        private uint GetBlockCount()
+        {
+            try
+            {
+                var getcountUrl = $"{Settings.Default.RpcUrl}/?jsonrpc=2.0&id=1&method=getblockcount&params=['{chainHash}']";
+                var info = wc.DownloadString(getcountUrl);
+                var json = JObject.Parse(info);
+                JToken result = json["result"];
+
+                if (result != null)
+                {
+                    uint height = uint.Parse(result.ToString());
+                    return height;
+                }
+            }
+            catch (Exception)
+            {
+            }
+
+            return 0;
+        }
+
+        private uint GetBlock(uint height)
+        {
+            try
+            {
+                var getblockUrl = $"{Settings.Default.RpcUrl}/?jsonrpc=2.0&id=1&method=getblock&params=['{chainHash}',{height},1]";
+                var info = wc.DownloadString(getblockUrl);
+                var json = JObject.Parse(info);
+                JToken result = json["result"];
+
+                if (result != null)
+                {
+                    block.Save(wc, result as JObject, height);
+                    return height + 1;
+                }
+            }
+            catch (Exception)
+            {
+            }
+
+            return height;
+        }
+
+        private void Process()
+        {
+            while (true)
+            {
+                uint blockCount = GetBlockCount();
+
+                while (currentHeight < blockCount)
+                {
+                    currentHeight = GetBlock(currentHeight);
+                    Thread.Sleep(10);
+                }
+
+                Thread.Sleep(1000);
+            }
+        }
+    }
+}
