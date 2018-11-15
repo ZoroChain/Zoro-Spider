@@ -15,7 +15,7 @@ namespace Zoro.Spider
         public SaveNotify(UInt160 chainHash)
             : base(chainHash)
         {
-            InitDataTable("notify");
+            InitDataTable(TableType.Notify);
 
             nep5Asset = new SaveNEP5Asset(chainHash);
             nep5Transfer = new SaveNEP5Transfer(chainHash);
@@ -23,6 +23,7 @@ namespace Zoro.Spider
 
         public override bool CreateTable(string name)
         {
+            MysqlConn.CreateTable(TableType.Notify, name);
             return true;
         }
 

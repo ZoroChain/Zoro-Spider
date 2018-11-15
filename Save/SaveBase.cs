@@ -32,7 +32,7 @@ namespace Zoro.Spider
 
         public bool IsTableExisted(string name)
         {
-            return false;
+            return MysqlConn.Exist(name);
         }
 
         public abstract bool CreateTable(string name);

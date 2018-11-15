@@ -12,11 +12,12 @@ namespace Zoro.Spider
         public SaveNEP5Asset(UInt160 chainHash)
             : base(chainHash)
         {
-            InitDataTable("nep5asset");
+            InitDataTable(TableType.NEP5Asset);
         }
 
         public override bool CreateTable(string name)
         {
+            MysqlConn.CreateTable(TableType.NEP5Asset, name);
             return true;
         }
 

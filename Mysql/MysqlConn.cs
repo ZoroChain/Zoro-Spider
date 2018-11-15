@@ -9,14 +9,64 @@ namespace Zoro.Spider
     {
         public static string conf = "";
 
-        public static void CreateTable(string createSql)
+        public static bool Exist(string tableName) {
+            string cmdStr = "select * from block.TABLES where Table_NAME='"+tableName+"'";
+            using (MySqlConnection conn = new MySqlConnection(conf))
+            {
+                MySqlCommand cmd = new MySqlCommand(cmdStr, conn);
+                conn.Open();
+                MySqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    int count = reader.GetInt32(0);
+                    if (count == 0)
+                    {
+                        return false;
+                    }
+                    else if (count == 1)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return true;
+        }
+
+        public static void CreateTable(string type, string tableName)
         {
-            //string createTableSql_block = "create table block (id bigint(20) primary key auto_increment, hash varchar(255), size varchar(255), version tinyint(3)," +
-            //    " previousblockhash varchar(255), merkleroot varchar(255)," +
-            //    " time int(11), indexx int(11), nonce varchar(255), nextconsensus varchar(255), script varchar(2048), tx longtext)";
-            //string createTableSql_address = "create table address (id int(11) primary key auto_increment, addr varchar(255)," +
-            //    " firstuse varchar(255), lastuse varchar(255), txcount int(11))";
-            string createTableSql_address_tx = "";
+            string createSql = "";
+            switch (type) {
+                case TableType.Block:
+                    createSql = "create table "+tableName+" (id bigint(20) primary key auto_increment, hash varchar(255), size varchar(255), version tinyint(3)," +
+                " previousblockhash varchar(255), merkleroot varchar(255)," +
+                " time int(11), indexx int(11), nonce varchar(255), nextconsensus varchar(255), script varchar(2048), tx longtext)";
+                    break;
+                case TableType.Address:
+                    createSql = "create table "+tableName+" (id int(11) primary key auto_increment, addr varchar(255)," +
+                " firstuse varchar(255), lastuse varchar(255), txcount int(11))";
+                    break;
+                case TableType.Address_tx:
+                    createSql = "create table "+tableName+" (id int(11) primary key auto_increment, addr varchar(255)," +
+                " txid varchar(255), blockindex int(11), blocktime varchar(255))";
+                    break;
+                case TableType.Transaction:
+                    createSql = "create table "+tableName+" (id int(11) primary key auto_increment, txid varchar(255)," +
+                " size int(11), type varchar(45), version tinyint(3), attributes varchar(2048), vin varchar(2048), vout varchar(2048)," +
+                " sys_fee int(11), net_fee int(11), scripts varchar(2048), nonce varchar(255), blockheight varchar(45))";
+                    break;
+                case TableType.Notify:
+                    createSql = "create table "+tableName+" (id bigint(20) primary key auto_increment, txid varchar(255), vmstate varchar(255), gas_consumed varchar(255)," +
+                " stack varchar(2048), notifications varchar(255), blockindex int(11))";
+                    break;
+                case TableType.NEP5Asset:                    
+                    createSql = "create table " + tableName + " (id int(11) primary key auto_increment, assetid varchar(45), totalsupply varchar(45)," +
+                " name varchar(45), symbol varchar(45), decimals varchar(45))";
+                    break;
+                case TableType.NEP5Transfer:
+                    createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, blockindex int(11), txid varchar(255)," +
+                " n tinyint(3), asset varchar(255), from varchar(255), to varchar(255)), value varchar(255))";
+                    break;
+            }
             using (MySqlConnection conn = new MySqlConnection(conf))
             {
                 conn.Open();
@@ -121,5 +171,15 @@ namespace Zoro.Spider
                 return count;
             }
         }
+    }
+
+    class TableType {
+        public const string Block = "block";
+        public const string Address = "address";
+        public const string Address_tx = "address_tx";
+        public const string Transaction = "tx";
+        public const string Notify = "notify";
+        public const string NEP5Asset = "nep5asset";
+        public const string NEP5Transfer = "nep5transfer";
     }
 }

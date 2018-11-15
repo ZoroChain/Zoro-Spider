@@ -12,13 +12,14 @@ namespace Zoro.Spider
         public SaveBlock(UInt160 chainHash)
             : base(chainHash)
         {
-            InitDataTable("block");
+            InitDataTable(TableType.Block);
 
             trans = new SaveTransaction(chainHash);
         }
 
         public override bool CreateTable(string name)
         {
+            MysqlConn.CreateTable(TableType.Block, name);
             return true;
         }
 

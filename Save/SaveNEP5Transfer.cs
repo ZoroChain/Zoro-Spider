@@ -8,11 +8,12 @@ namespace Zoro.Spider
         public SaveNEP5Transfer(UInt160 chainHash)
             : base(chainHash)
         {
-            InitDataTable("nep5transfer");
+            InitDataTable(TableType.NEP5Transfer);
         }
 
         public override bool CreateTable(string name)
         {
+            MysqlConn.CreateTable(TableType.NEP5Transfer, name);
             return true;
         }
 

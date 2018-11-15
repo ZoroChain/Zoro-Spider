@@ -17,7 +17,7 @@ namespace Zoro.Spider
         public SaveTransaction(UInt160 chainHash)
             : base(chainHash)
         {
-            InitDataTable("tx");
+            InitDataTable(TableType.Transaction);
 
             utxo = new SaveUTXO(chainHash);
             address = new SaveAddress(chainHash);
@@ -28,6 +28,7 @@ namespace Zoro.Spider
 
         public override bool CreateTable(string name)
         {
+            MysqlConn.CreateTable(TableType.Transaction, name);
             return true;
         }
 
@@ -71,12 +72,12 @@ namespace Zoro.Spider
             var addressTransactionPath = "addressTransaction" + Path.DirectorySeparatorChar + result["txid"] + ".txt";
             addressTrans.Save(result, addressTransactionPath, blockHeight, blockTime);
 
-            if (result["type"].ToString() == "RegisterTransaction")
-            {
-                var assetPath = "asset" + Path.DirectorySeparatorChar + result["txid"] + ".txt";
-                asset.Save(jObject, assetPath);
-            }
-            else if (result["type"].ToString() == "InvocationTransaction")
+            //if (result["type"].ToString() == "RegisterTransaction")
+            //{
+            //    var assetPath = "asset" + Path.DirectorySeparatorChar + result["txid"] + ".txt";
+            //    asset.Save(jObject, assetPath);
+            //}
+            if (result["type"].ToString() == "InvocationTransaction")
             {
                 notify.Save(wc, jObject, blockHeight);
             }

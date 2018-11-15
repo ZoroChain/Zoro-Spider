@@ -9,11 +9,12 @@ namespace Zoro.Spider
         public SaveAddress(UInt160 chainHash)
             : base(chainHash)
         {
-            InitDataTable("address");
+            InitDataTable(TableType.Address);
         }
 
         public override bool CreateTable(string name)
         {
+            MysqlConn.CreateTable(TableType.Address, name);
             return true;
         }
 
