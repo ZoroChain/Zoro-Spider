@@ -63,7 +63,7 @@ namespace Zoro.Spider
             slist.Add(blockHeight.ToString());
             MysqlConn.ExecuteDataInsert(DataTableName, slist);
 
-            Program.Log($"SaveTransaction {ChainHash} {blockHeight} {result["txid"]}", Program.LogLevel.Info);
+            Program.Log($"SaveTransaction {ChainHash} {blockHeight}", Program.LogLevel.Info);
             Program.Log(result.ToString(), Program.LogLevel.Debug);
 
             address.Save(result["vout"], blockHeight, blockTime);

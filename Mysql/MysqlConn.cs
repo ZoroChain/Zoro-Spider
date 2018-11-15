@@ -51,7 +51,7 @@ namespace Zoro.Spider
                     break;
                 case TableType.Notify:
                     createSql = "create table "+tableName+" (id bigint(20) primary key auto_increment, txid varchar(255), vmstate varchar(255), gas_consumed varchar(255)," +
-                " stack varchar(2048), notifications varchar(255), blockindex int(11))";
+                " stack varchar(2048), notifications varchar(2048), blockindex int(11))";
                     break;
                 case TableType.NEP5Asset:                    
                     createSql = "create table " + tableName + " (id int(11) primary key auto_increment, assetid varchar(45), totalsupply varchar(45)," +
@@ -59,7 +59,7 @@ namespace Zoro.Spider
                     break;
                 case TableType.NEP5Transfer:
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, blockindex int(11), txid varchar(255)," +
-                " n tinyint(3), asset varchar(255), from varchar(255), to varchar(255)), value varchar(255))";
+                " n int(11), asset varchar(255), from varchar(255), to varchar(255)), value varchar(255))";
                     break;
                 case TableType.UTXO:
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, addr varchar(255), txid varchar(255)," +
