@@ -59,7 +59,7 @@ namespace Zoro.Spider
                     break;
                 case TableType.NEP5Transfer:
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, blockindex int(11), txid varchar(255)," +
-                " n int(11), asset varchar(255), from varchar(255), to varchar(255), value varchar(255))";
+                " n int(11), asset varchar(255), fromx varchar(255), tox varchar(255), value varchar(255))";
                     break;
                 case TableType.UTXO:
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, addr varchar(255), txid varchar(255)," +
@@ -232,10 +232,10 @@ namespace Zoro.Spider
             }
         }
 
-        public static void SaveAndUpdataAppChainState(string table, List<string> hashlist, string hash)
+        public static void SaveAndUpdataAppChainState(string table, List<string> hashlist)
         {
             var dir = new Dictionary<string, string>();
-            dir.Add("hash", hash);
+            dir.Add("hash", hashlist[1]);
             DataTable dt = ExecuteDataSet(table, dir).Tables[0];
             if (dt.Rows.Count == 0)
             {
@@ -244,7 +244,12 @@ namespace Zoro.Spider
             else
             {
                 var set = new Dictionary<string, string>();
-                //set.Add("hashlist", hashlist);
+                set.Add("version", hashlist[0]);
+                set.Add("name", hashlist[2]);
+                set.Add("owner", hashlist[3]);
+                set.Add("timestamp", hashlist[4]);
+                set.Add("seedlist", hashlist[5]);
+                set.Add("validators", hashlist[6]);
                 Update(table, set, dir);
             }
         }

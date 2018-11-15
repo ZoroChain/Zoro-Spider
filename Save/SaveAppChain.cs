@@ -34,7 +34,7 @@ namespace Zoro.Spider
 			slist.Add(jObject["seedlist"].ToString());
 			slist.Add(jObject["validators"].ToString());
 
-            MysqlConn.SaveAndUpdataAppChainState(DataTableName, slist, jObject["hash"].ToString());
+            MysqlConn.SaveAndUpdataAppChainState(DataTableName, slist);
 
             Program.Log($"SaveAppChain {jObject["hash"]} {jObject["name"]}", Program.LogLevel.Info);
             Program.Log(slist.ToString(), Program.LogLevel.Debug);
