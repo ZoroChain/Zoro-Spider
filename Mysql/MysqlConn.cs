@@ -59,11 +59,11 @@ namespace Zoro.Spider
                     break;
                 case TableType.NEP5Transfer:
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, blockindex int(11), txid varchar(255)," +
-                " n int(11), asset varchar(255), from varchar(255), to varchar(255)), value varchar(255))";
+                " n int(11), asset varchar(255), from varchar(255), to varchar(255), value varchar(255))";
                     break;
                 case TableType.UTXO:
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, addr varchar(255), txid varchar(255)," +
-                " n int(11), asset varchar(255), value varchar(255), createHeight int(11), used varchar(255)), useHeight int(11), claimed varchar(255))";
+                " n int(11), asset varchar(255), value varchar(255), createHeight int(11), used varchar(255), useHeight int(11), claimed varchar(255))";
                     break;
                 case TableType.Hash_List:
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, hashlist varchar(255)";
@@ -218,7 +218,7 @@ namespace Zoro.Spider
 
         public static void SaveAndUpdataHashList(string table, string hashlist) {
             var dir = new Dictionary<string, string>();
-            DataTable dt = ExecuteDataSet("chainlistheight", dir).Tables[0];
+            DataTable dt = ExecuteDataSet(table, dir).Tables[0];
             if (dt.Rows.Count == 0)
             {
                 var list = new List<string>();
@@ -228,6 +228,23 @@ namespace Zoro.Spider
             else {
                 var set = new Dictionary<string, string>();
                 set.Add("hashlist", hashlist);
+                Update(table, set, dir);
+            }
+        }
+
+        public static void SaveAndUpdataAppChainState(string table, List<string> hashlist, string hash)
+        {
+            var dir = new Dictionary<string, string>();
+            dir.Add("hash", hash);
+            DataTable dt = ExecuteDataSet(table, dir).Tables[0];
+            if (dt.Rows.Count == 0)
+            {
+                ExecuteDataInsert(table, hashlist);
+            }
+            else
+            {
+                var set = new Dictionary<string, string>();
+                //set.Add("hashlist", hashlist);
                 Update(table, set, dir);
             }
         }

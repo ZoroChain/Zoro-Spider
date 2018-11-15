@@ -9,11 +9,12 @@ namespace Zoro.Spider
         public SaveAppChain()
             : base(null)
         {
-            InitDataTable("appchain");
+            InitDataTable(TableType.Appchainstate);
         }
 
         public override bool CreateTable(string name)
         {
+            MysqlConn.CreateTable(TableType.Appchainstate, name);
             return true;
         }
 
@@ -33,7 +34,7 @@ namespace Zoro.Spider
 			slist.Add(jObject["seedlist"].ToString());
 			slist.Add(jObject["validators"].ToString());
 
-			MysqlConn.ExecuteDataInsert("appchainstate", slist);
+            MysqlConn.SaveAndUpdataAppChainState(DataTableName, slist, jObject["hash"].ToString());
 
             Program.Log($"SaveAppChain {jObject["hash"]} {jObject["name"]}", Program.LogLevel.Info);
             Program.Log(slist.ToString(), Program.LogLevel.Debug);

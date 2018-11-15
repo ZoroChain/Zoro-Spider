@@ -8,7 +8,7 @@ namespace Zoro.Spider
         public SaveHashlist()
             : base(null)
         {
-            InitDataTable("hashlist");
+            InitDataTable(TableType.Hash_List);
         }
 
         public override bool CreateTable(string name)

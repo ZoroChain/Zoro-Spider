@@ -9,7 +9,7 @@ namespace Zoro.Spider
         public SaveUTXO(UInt160 chainHash)
             : base(chainHash)
         {
-            InitDataTable("utox");
+            InitDataTable(TableType.UTXO);
         }
 
         public override bool CreateTable(string name)
