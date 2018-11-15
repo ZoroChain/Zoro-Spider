@@ -6,6 +6,7 @@ namespace Zoro.Spider
     internal class Settings
     {
         public string MysqlConfig { get; }
+        public string DataBaseName { get; }
         public string RpcUrl { get; }
 
         public static Settings Default { get; }
@@ -28,6 +29,7 @@ namespace Zoro.Spider
                 this.MysqlConfig += ";";
             }
 
+            DataBaseName = section.GetSection("MySql").GetSection("database").Value;
             RpcUrl = section.GetSection("RPC").GetSection("url").Value;
         }
     }

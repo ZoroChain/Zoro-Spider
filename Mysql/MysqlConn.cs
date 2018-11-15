@@ -8,9 +8,11 @@ namespace Zoro.Spider
     class MysqlConn
     {
         public static string conf = "";
+        public static string dbname = "";
 
-        public static bool Exist(string tableName) {
-            string cmdStr = "select * from block.TABLES where Table_NAME='"+tableName+"'";
+        public static bool Exist(string tableName)
+        {
+            string cmdStr = $"select t.table_name from information_schema.TABLES t where t.TABLE_SCHEMA = '{dbname}' and t.TABLE_NAME = '{ tableName }' ";
             using (MySqlConnection conn = new MySqlConnection(conf))
             {
                 MySqlCommand cmd = new MySqlCommand(cmdStr, conn);
@@ -18,18 +20,11 @@ namespace Zoro.Spider
                 MySqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    int count = reader.GetInt32(0);
-                    if (count == 0)
-                    {
-                        return false;
-                    }
-                    else if (count == 1)
-                    {
-                        return true;
-                    }
+                    string name = reader.GetString(0);
+                    return true;
                 }
             }
-            return true;
+            return false;
         }
 
         public static void CreateTable(string type, string tableName)
@@ -76,11 +71,11 @@ namespace Zoro.Spider
                     {
                         cmd.ExecuteNonQuery();
                     }
-                    Console.WriteLine("建表成功");
+                    Program.Log("建表成功 " + tableName, Program.LogLevel.Info);
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine("建表失败");
+                    Program.Log("建表失败 " + tableName, Program.LogLevel.Error);
                 }
             }
         }
