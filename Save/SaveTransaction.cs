@@ -1,8 +1,7 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
-using System.Net;
+﻿using System.Net;
 using System.Collections.Generic;
 using System.IO;
+using Newtonsoft.Json.Linq;
 
 namespace Zoro.Spider
 {
@@ -14,7 +13,7 @@ namespace Zoro.Spider
         private SaveAsset asset;
         private SaveNotify notify;
 
-        public SaveTransaction(UInt160 chainHash)
+        public SaveTransaction(WebClient wc, UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.Transaction);
@@ -23,7 +22,7 @@ namespace Zoro.Spider
             address = new SaveAddress(chainHash);
             addressTrans = new SaveAddressTransaction(chainHash);
             asset = new SaveAsset(chainHash);
-            notify = new SaveNotify(chainHash);
+            notify = new SaveNotify(wc, chainHash);
         }
 
         public override bool CreateTable(string name)
@@ -32,7 +31,7 @@ namespace Zoro.Spider
             return true;
         }
 
-        public void Save(WebClient wc, JObject jObject, uint blockHeight, uint blockTime)
+        public void Save(JToken jObject, uint blockHeight, uint blockTime)
         {
             JObject result = new JObject();
             result["txid"] = jObject["txid"];
@@ -80,7 +79,7 @@ namespace Zoro.Spider
             //}
             if (result["type"].ToString() == "InvocationTransaction")
             {
-                notify.Save(wc, jObject, blockHeight);
+                notify.Save(jObject, blockHeight);
             }
         }
     }

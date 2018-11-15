@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using System.Net;
+using System.Numerics;
+using System.Globalization;
 using System.Threading.Tasks;
 using Neo.VM;
 
@@ -9,10 +12,13 @@ namespace Zoro.Spider
 {
     class SaveNEP5Asset : SaveBase
     {
-        public SaveNEP5Asset(UInt160 chainHash)
+        private WebClient wc;
+
+        public SaveNEP5Asset(WebClient wc, UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.NEP5Asset);
+            this.wc = wc;
         }
 
         public override bool CreateTable(string name)
@@ -42,35 +48,24 @@ namespace Zoro.Spider
         {
             ScriptBuilder sb = new ScriptBuilder();
 
-            JArray array = new JArray();
-            sb.EmitPush(array);
-            sb.EmitPush("totalSupply");
-            sb.EmitAppCall(Contract);
+            sb.EmitAppCall(Contract, "totalSupply");
+            sb.EmitAppCall(Contract, "name");
+            sb.EmitAppCall(Contract, "symbol");
+            sb.EmitAppCall(Contract, "decimals");
 
-            sb.EmitPush(array);
-            sb.EmitPush("name");
-            sb.EmitAppCall(Contract);
+            string script = Helper.Bytes2HexString(sb.ToArray());
 
-            sb.EmitPush(array);
-            sb.EmitPush("symbol");
-            sb.EmitAppCall(Contract);
+            var url = $"{Settings.Default.RpcUrl}/?jsonrpc=2.0&id=1&method=invokescript&params=['{ChainHash}','{script}']";
+            var result = await wc.DownloadStringTaskAsync(url);
 
-            sb.EmitPush(array);
-            sb.EmitPush("decimals");
-            sb.EmitAppCall(Contract);
+            IO.Json.JObject jObject = IO.Json.JObject.Parse(result);
+            IO.Json.JObject jsonResult = jObject["result"];
+            IO.Json.JArray jStack = jsonResult["stack"] as IO.Json.JArray;
 
-            string scriptPublish = Helper.Bytes2HexString(sb.ToArray());
-
-            byte[] postdata;
-            var url = Helper.MakeRpcUrlPost(Helper.url, "invokescript", out postdata, new JObject(scriptPublish));
-            var result = await Helper.HttpPost(url, postdata);
-
-            JObject jObject = JObject.Parse(result);
-            JArray results = jObject["result"]["stack"] as JArray;
-            string totalSupply = Encoding.UTF8.GetString(Helper.HexString2Bytes(results[0]["value"].ToString()));
-            string name = Encoding.UTF8.GetString(Helper.HexString2Bytes(results[1]["value"].ToString()));
-            string symbol = Encoding.UTF8.GetString(Helper.HexString2Bytes(results[2]["value"].ToString()));
-            string decimals = Encoding.UTF8.GetString(Helper.HexString2Bytes(results[3]["value"].ToString()));
+            string totalSupply = BigInteger.Parse(jStack[0]["value"].AsString(), NumberStyles.AllowHexSpecifier).ToString();
+            string name = Encoding.UTF8.GetString(Helper.HexString2Bytes(jStack[1]["value"].AsString()));
+            string symbol = Encoding.UTF8.GetString(Helper.HexString2Bytes(jStack[2]["value"].AsString()));
+            string decimals = BigInteger.Parse(jStack[3]["value"].AsString()).ToString();
 
             List<string> slist = new List<string>();
             slist.Add(Contract.ToString());

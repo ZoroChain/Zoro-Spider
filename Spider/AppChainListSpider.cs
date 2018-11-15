@@ -56,6 +56,7 @@ namespace Zoro.Spider
             }
             catch (Exception)
             {
+                Program.Log("error occured when call getappchainhashlist", Program.LogLevel.Error);
             }
 
             return null;
@@ -80,6 +81,7 @@ namespace Zoro.Spider
             }
             catch (Exception)
             {
+                Program.Log($"error occured when call getappchainstate with chainHash ={chainHash}", Program.LogLevel.Error);
             }
         }
 

@@ -18,8 +18,8 @@ namespace Zoro.Spider
         public ChainSpider(UInt160 chainHash)
         {
             this.chainHash = chainHash;
-            this.currentHeight = MysqlConn.getHeight(chainHash.ToString());
-            block = new SaveBlock(chainHash);
+            this.currentHeight = Settings.Default.Restart == 1 ? 0 : MysqlConn.getHeight(chainHash.ToString());
+            block = new SaveBlock(wc, chainHash);
         }
 
         public void Start()
@@ -50,8 +50,9 @@ namespace Zoro.Spider
                     return height;
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Program.Log($"error occured when call getblockcount {chainHash}, reason:{e.Message}", Program.LogLevel.Error);
             }
 
             return 0;
@@ -68,14 +69,15 @@ namespace Zoro.Spider
 
                 if (result != null)
                 {
-                    block.Save(wc, result as JObject, height);
+                    block.Save(wc, result, height);
                     //每获取一个块做一次高度记录，方便下次启动时做开始高度
                     MysqlConn.SaveAndUpdateHeight(chainHash.ToString(), height.ToString());
                     return height + 1;
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Program.Log($"error occured when call getblock {chainHash}, reason:{e.Message}", Program.LogLevel.Error);
             }
 
             return height;

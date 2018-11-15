@@ -1,24 +1,28 @@
 ﻿using System;
-using System.IO;
 using System.Net;
 using System.Text;
 using System.Collections.Generic;
+using System.Numerics;
+using System.Globalization;
 using Newtonsoft.Json.Linq;
 
 namespace Zoro.Spider
 {
     class SaveNotify : SaveBase
     {
+        private WebClient wc;
         private SaveNEP5Asset nep5Asset;
         private SaveNEP5Transfer nep5Transfer;
 
-        public SaveNotify(UInt160 chainHash)
+        public SaveNotify(WebClient wc, UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.Notify);
 
-            nep5Asset = new SaveNEP5Asset(chainHash);
+            nep5Asset = new SaveNEP5Asset(wc, chainHash);
             nep5Transfer = new SaveNEP5Transfer(chainHash);
+
+            this.wc = wc;
         }
 
         public override bool CreateTable(string name)
@@ -27,7 +31,7 @@ namespace Zoro.Spider
             return true;
         }
 
-        public void Save(WebClient wc, JToken jToken, uint blockHeight)
+        public void Save(JToken jToken, uint blockHeight)
         {
             JToken result = null;
             JToken executions = null;
@@ -37,11 +41,11 @@ namespace Zoro.Spider
                 var info = wc.DownloadString(getUrl);
                 var json = JObject.Parse(info);
                 result = json["result"];
-                executions = result["executions"].First;
+                executions = result["executions"].First as JToken;
             }
             catch (Exception)
             {
-                Helper.printLog($"error occured when call getapplicationlog with txid ={jToken["txid"]}");
+                Program.Log($"error occured when call getapplicationlog with txid ={jToken["txid"]}", Program.LogLevel.Error);
             }
             if (result != null && executions != null)
             {
@@ -52,8 +56,6 @@ namespace Zoro.Spider
                 //jObject["stack"] = executions["stack"];
                 //jObject["notifications"] = executions["notifications"];
                 //jObject["blockindex"] = blockHeight;
-
-                string str = executions["notifications"].ToString();
 
                 List<string> slist = new List<string>();
                 slist.Add(jToken["txid"].ToString());
@@ -68,11 +70,15 @@ namespace Zoro.Spider
                 //File.Delete(notifyPath);
                 //File.WriteAllText(notifyPath, jObject.ToString(), Encoding.UTF8);
 
-                foreach (JObject notify in executions["notifications"])
+                JToken notifications = executions["notifications"];
+
+                foreach (JObject notify in notifications)
                 {
-                    if (notify["state"]["value"][0]["type"].ToString() == "ByteArray")
+                    JToken values = notify["state"]["value"];
+
+                    if (values[0]["type"].ToString() == "ByteArray")
                     {
-                        string transfer = Encoding.UTF8.GetString(Helper.HexString2Bytes(notify["state"]["value"][0]["value"].ToString()));
+                        string transfer = Encoding.UTF8.GetString(Helper.HexString2Bytes(values[0]["value"].ToString()));
                         string contract = notify["contract"].ToString();
 
                         if (transfer == "transfer")
@@ -87,9 +93,10 @@ namespace Zoro.Spider
                             tx["txid"] = jToken["txid"].ToString();
                             tx["n"] = 0;
                             tx["asset"] = contract;
-                            tx["from"] = Encoding.UTF8.GetString(Helper.HexString2Bytes(notify["state"]["value"][1]["value"].ToString()));
-                            tx["to"] = Encoding.UTF8.GetString(Helper.HexString2Bytes(notify["state"]["value"][2]["value"].ToString()));
-                            tx["value"] = Encoding.UTF8.GetString(Helper.HexString2Bytes(notify["state"]["value"][3]["value"].ToString()));
+                            tx["from"] = values[1]["value"].ToString();
+                            tx["to"] = values[2]["value"].ToString();
+                            tx["value"] = BigInteger.Parse(values[3]["value"].ToString(), NumberStyles.AllowHexSpecifier).ToString();
+
                             nep5Transfer.Save(tx);
                         }
                     }

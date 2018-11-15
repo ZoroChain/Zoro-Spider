@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
@@ -9,12 +8,12 @@ namespace Zoro.Spider
     {
         private SaveTransaction trans;
 
-        public SaveBlock(UInt160 chainHash)
+        public SaveBlock(WebClient wc, UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.Block);
 
-            trans = new SaveTransaction(chainHash);
+            trans = new SaveTransaction(wc, chainHash);
         }
 
         public override bool CreateTable(string name)
@@ -58,7 +57,7 @@ namespace Zoro.Spider
 
             foreach (var tx in jObject["tx"])
             {
-                trans.Save(wc, tx as JObject, height, blockTime);
+                trans.Save(tx, height, blockTime);
             }
         }
     }
