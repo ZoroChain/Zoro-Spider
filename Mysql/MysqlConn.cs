@@ -61,6 +61,17 @@ namespace Zoro.Spider
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, blockindex int(11), txid varchar(255)," +
                 " n tinyint(3), asset varchar(255), from varchar(255), to varchar(255)), value varchar(255))";
                     break;
+                case TableType.UTXO:
+                    createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, addr varchar(255), txid varchar(255)," +
+                " n tinyint(3), asset varchar(255), value varchar(255), createHeight int(11), used varchar(255)), useHeight int(11), claimed varchar(255))";
+                    break;
+                case TableType.Hash_List:
+                    createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, hashlist varchar(255)";
+                    break;
+                case TableType.Appchainstate:
+                    createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, version varchar(255), hash varchar(255), name varchar(255)," +
+                " owner varchar(255), timestamp varchar(255), seedlist longtext, validators longtext)";
+                    break;
             }
             using (MySqlConnection conn = new MySqlConnection(conf))
             {
@@ -83,7 +94,10 @@ namespace Zoro.Spider
         public static DataSet ExecuteDataSet(string tableName, Dictionary<string, string> where) {
             using (MySqlConnection conn = new MySqlConnection(conf)) {
                 conn.Open();
-                string select = "select * from " + tableName + " where";
+                string select = "select * from " + tableName;
+                if (where.Count != 0) {
+                    select += " where";
+                }               
                 foreach (var dir in where)
                 {
                     select += " " + dir.Key + "='" + dir.Value + "'";
@@ -152,13 +166,15 @@ namespace Zoro.Spider
                     update += dir.Key + "='" + dir.Value + "',";
                 }
                 update = update.Substring(0, update.Length - 1);
-                update += " where";
+                if (where.Count != 0) 
+                    update += " where";
                 foreach (var dir in where)
                 {
                     update += " " + dir.Key + "='" + dir.Value + "'";
                     update += " and";
                 }
-                update = update.Substring(0, update.Length - 4);
+                if (where.Count != 0)
+                    update = update.Substring(0, update.Length - 4);
                 update += ";";
                 MySqlCommand command = new MySqlCommand(update, conn);
                 int count = command.ExecuteNonQuery();
@@ -199,6 +215,22 @@ namespace Zoro.Spider
                 Update("chainlistheight", set, dir);
             }
         }
+
+        public static void SaveAndUpdataHashList(string table, string hashlist) {
+            var dir = new Dictionary<string, string>();
+            DataTable dt = ExecuteDataSet("chainlistheight", dir).Tables[0];
+            if (dt.Rows.Count == 0)
+            {
+                var list = new List<string>();
+                list.Add(hashlist);
+                ExecuteDataInsert(table, list);
+            }
+            else {
+                var set = new Dictionary<string, string>();
+                set.Add("hashlist", hashlist);
+                Update(table, set, dir);
+            }
+        }
     }
 
     class TableType {
@@ -209,5 +241,8 @@ namespace Zoro.Spider
         public const string Notify = "notify";
         public const string NEP5Asset = "nep5asset";
         public const string NEP5Transfer = "nep5transfer";
+        public const string UTXO = "utxo";
+        public const string Hash_List = "hashlist";
+        public const string Appchainstate = "appchainstate";
     }
 }

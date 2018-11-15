@@ -14,6 +14,7 @@ namespace Zoro.Spider
 
         public override bool CreateTable(string name)
         {
+            MysqlConn.CreateTable(TableType.UTXO, name);
             return true;
         }
 

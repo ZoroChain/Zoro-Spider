@@ -13,19 +13,13 @@ namespace Zoro.Spider
 
         public override bool CreateTable(string name)
         {
+
             return true;
         }
 
         public void Save(JToken jObject)
         {
-            JObject hashresult = new JObject();
-
-            hashresult["result"] = jObject["result"];
-
-            List<string> slist = new List<string>();
-
-            slist.Add(jObject["hashlist"].ToString());
-            MysqlConn.ExecuteDataInsert(DataTableName, slist);
+            MysqlConn.SaveAndUpdataHashList(DataTableName, jObject["hashlist"].ToString());
         }
     }
 }
