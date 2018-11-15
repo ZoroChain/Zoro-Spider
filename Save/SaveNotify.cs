@@ -30,41 +30,45 @@ namespace Zoro.Spider
         public void Save(WebClient wc, JToken jToken, uint blockHeight)
         {
             JToken result = null;
+            JToken executions = null;
             try
             {
-                var getUrl = Helper.url + "?jsonrpc=2.0&id=1&method=getapplicationlog&params=[" + ChainHash.ToString() + "," + jToken["txid"] + "]";
+                var getUrl = $"{Settings.Default.RpcUrl}/?jsonrpc=2.0&id=1&method=getapplicationlog&params=['{ChainHash}','{jToken["txid"]}']";
                 var info = wc.DownloadString(getUrl);
                 var json = JObject.Parse(info);
                 result = json["result"];
+                executions = result["executions"].First;
             }
             catch (Exception)
             {
                 Helper.printLog($"error occured when call getapplicationlog with txid ={jToken["txid"]}");
             }
-            if (result != null)
+            if (result != null && executions != null)
             {
-                JObject jObject = new JObject();
-                jObject["txid"] = jToken["txid"];
-                jObject["vmstate"] = result["vmstate"];
-                jObject["gas_consumed"] = result["gas_consumed"];
-                jObject["stack"] = result["stack"];
-                jObject["notifications"] = result["notifications"];
-                jObject["blockindex"] = blockHeight;
+                //JObject jObject = new JObject();
+                //jObject["txid"] = jToken["txid"];
+                //jObject["vmstate"] = executions["vmstate"];
+                //jObject["gas_consumed"] = executions["gas_consumed"];
+                //jObject["stack"] = executions["stack"];
+                //jObject["notifications"] = executions["notifications"];
+                //jObject["blockindex"] = blockHeight;
+
+                string str = executions["notifications"].ToString();
 
                 List<string> slist = new List<string>();
                 slist.Add(jToken["txid"].ToString());
-                slist.Add(result["vmstate"].ToString());
-                slist.Add(result["gas_consumed"].ToString());
-                slist.Add(result["stack"].ToString());
-                slist.Add(result["notifications"].ToString());
+                slist.Add(executions["vmstate"].ToString());
+                slist.Add(executions["gas_consumed"].ToString());
+                slist.Add(executions["stack"].ToString());
+                slist.Add(executions["notifications"].ToString());
                 slist.Add(blockHeight.ToString());
                 MysqlConn.ExecuteDataInsert(DataTableName, slist);
 
-                var notifyPath = "notify" + Path.DirectorySeparatorChar + result["txid"] + "_" + result["n"] + ".txt";
-                File.Delete(notifyPath);
-                File.WriteAllText(notifyPath, jObject.ToString(), Encoding.UTF8);
+                //var notifyPath = "notify" + Path.DirectorySeparatorChar + result["txid"] + "_" + result["n"] + ".txt";
+                //File.Delete(notifyPath);
+                //File.WriteAllText(notifyPath, jObject.ToString(), Encoding.UTF8);
 
-                foreach (JObject notify in jObject["notifications"])
+                foreach (JObject notify in executions["notifications"])
                 {
                     if (notify["state"]["value"][0]["type"].ToString() == "ByteArray")
                     {
