@@ -18,7 +18,7 @@ namespace Zoro.Spider
         public ChainSpider(UInt160 chainHash)
         {
             this.chainHash = chainHash;
-
+            this.currentHeight = MysqlConn.getHeight(chainHash.ToString());
             block = new SaveBlock(chainHash);
         }
 
@@ -69,6 +69,8 @@ namespace Zoro.Spider
                 if (result != null)
                 {
                     block.Save(wc, result as JObject, height);
+                    //每获取一个块做一次高度记录，方便下次启动时做开始高度
+                    MysqlConn.SaveAndUpdateHeight(chainHash.ToString(), height.ToString());
                     return height + 1;
                 }
             }

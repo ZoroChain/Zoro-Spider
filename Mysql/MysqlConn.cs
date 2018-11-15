@@ -171,6 +171,39 @@ namespace Zoro.Spider
                 return count;
             }
         }
+
+        public static uint getHeight(string chainHash) {
+            var dir = new Dictionary<string, string>();
+            dir.Add("chainhash", chainHash);
+            DataTable dt = ExecuteDataSet("chainlistheight", dir).Tables[0];
+            if (dt.Rows.Count == 0)
+            {
+                return 0;
+            }
+            else {
+                return uint.Parse(dt.Rows[0]["chainheight"].ToString());
+            }
+        }
+
+        public static void SaveAndUpdateHeight(string chainHash, string height)
+        {
+            var dir = new Dictionary<string, string>();
+            dir.Add("chainhash", chainHash);
+            DataTable dt = ExecuteDataSet("chainlistheight", dir).Tables[0];
+            if (dt.Rows.Count == 0)
+            {
+                var list = new List<string>();
+                list.Add(chainHash);
+                list.Add(height);
+                ExecuteDataInsert("chainlistheight", list);
+            }
+            else
+            {
+                var set = new Dictionary<string, string>();
+                set.Add("chainheight", height);
+                Update("chainlistheight", set, dir);
+            }
+        }
     }
 
     class TableType {
