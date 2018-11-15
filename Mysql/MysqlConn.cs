@@ -63,14 +63,14 @@ namespace Zoro.Spider
                     break;
                 case TableType.UTXO:
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, addr varchar(255), txid varchar(255)," +
-                " n tinyint(3), asset varchar(255), value varchar(255), createHeight int(11), used varchar(255)), useHeight int(11), claimed varchar(255))";
+                " n int(11), asset varchar(255), value varchar(255), createHeight int(11), used varchar(255)), useHeight int(11), claimed varchar(255))";
                     break;
                 case TableType.Hash_List:
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, hashlist varchar(255)";
                     break;
                 case TableType.Appchainstate:
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, version varchar(255), hash varchar(255), name varchar(255)," +
-                " owner varchar(255), timestamp varchar(255), seedlist longtext, validators longtext)";
+                " owner varchar(255), timestamp varchar(255), seedlist varchar(2048), validators varchar(2048))";
                     break;
             }
             using (MySqlConnection conn = new MySqlConnection(conf))
