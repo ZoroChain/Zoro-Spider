@@ -47,6 +47,9 @@ namespace Zoro.Spider
             slist.Add(result["frozen"].ToString());
             MysqlConn.ExecuteDataInsert(DataTableName, slist);
 
+            Program.Log($"SaveAsset {ChainHash} {result["name"]}", Program.LogLevel.Info);
+            Program.Log(slist.ToString(), Program.LogLevel.Debug);
+
             //File.Delete(path);
             //File.WriteAllText(path, result.ToString(), Encoding.UTF8);
         }

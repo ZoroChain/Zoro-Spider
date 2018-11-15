@@ -72,8 +72,6 @@ namespace Zoro.Spider
                 JToken result = json["result"];
                 if (result != null)
                 {
-                    Console.WriteLine($"SaveAppChain {chainHash}");
-
                     appchain.Save(result);
 
                     Program.StartChainSpider(chainHash);

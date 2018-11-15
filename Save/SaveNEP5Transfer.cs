@@ -28,6 +28,9 @@ namespace Zoro.Spider
             slist.Add(jToken["to"].ToString());
             slist.Add(jToken["value"].ToString());
             MysqlConn.ExecuteDataInsert(DataTableName, slist);
+
+            Program.Log($"SaveNEP5Transfer {ChainHash} {jToken["blockindex"]} {jToken["txid"]}", Program.LogLevel.Info);
+            Program.Log(jToken.ToString(), Program.LogLevel.Debug);
         }
     }
 }

@@ -108,7 +108,8 @@ namespace Zoro.Spider
                         select += " " + dir.Key + "='" + dir.Value + "'";
                         select += " and";
                     }
-                    select = select.Substring(0, select.Length - 4);
+                    if (where.Count > 0)
+                        select = select.Substring(0, select.Length - 4);
                     MySqlDataAdapter adapter = new MySqlDataAdapter(select, conf);
                     DataSet ds = new DataSet();
                     adapter.Fill(ds);

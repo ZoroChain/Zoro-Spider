@@ -66,6 +66,9 @@ namespace Zoro.Spider
                 slist.Add(blockHeight.ToString());
                 MysqlConn.ExecuteDataInsert(DataTableName, slist);
 
+                Program.Log($"SaveNotify {ChainHash} {jToken["txid"]}", Program.LogLevel.Info);
+                Program.Log(result.ToString(), Program.LogLevel.Debug);
+
                 //var notifyPath = "notify" + Path.DirectorySeparatorChar + result["txid"] + "_" + result["n"] + ".txt";
                 //File.Delete(notifyPath);
                 //File.WriteAllText(notifyPath, jObject.ToString(), Encoding.UTF8);

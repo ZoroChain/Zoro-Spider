@@ -74,6 +74,9 @@ namespace Zoro.Spider
             slist.Add(symbol);
             slist.Add(decimals);
             MysqlConn.ExecuteDataInsert(DataTableName, slist);
+
+            Program.Log($"SaveNEP5Asset {ChainHash} {Contract}", Program.LogLevel.Info);
+            Program.Log(slist.ToString(), Program.LogLevel.Debug);
         }
     }
 }

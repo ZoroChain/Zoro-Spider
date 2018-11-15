@@ -15,6 +15,7 @@ namespace Zoro.Spider
         }
 
         private static LogLevel logLevel = LogLevel.Info;
+        private static object logLock = new object();
 
         static void Main(string[] args)
         {
@@ -37,6 +38,8 @@ namespace Zoro.Spider
 
         public static void StartChainSpider(UInt160 chainHash)
         {
+            Log($"Starting chain spider {chainHash}", LogLevel.Info);
+
             ChainSpider spider = new ChainSpider(chainHash);
             spider.Start();
         }
@@ -60,7 +63,10 @@ namespace Zoro.Spider
                 string line = $"[{now.TimeOfDay:hh\\:mm\\:ss\\.fff}] {message}";
                 Console.WriteLine(line);
                 string path = $"zoro-spider_{now:yyyy-MM-dd}.log";
-                File.AppendAllLines(path, new[] { line });
+                lock(logLock)
+                {
+                    File.AppendAllLines(path, new[] { line });
+                }
             }
         }
     }
