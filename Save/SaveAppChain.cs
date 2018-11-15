@@ -34,6 +34,9 @@ namespace Zoro.Spider
 			slist.Add(jObject["validators"].ToString());
 
 			MysqlConn.ExecuteDataInsert("appchainstate", slist);
-		}
+
+            Program.Log($"SaveAppChain {jObject["hash"]} {jObject["name"]}", Program.LogLevel.Info);
+            Program.Log(slist.ToString(), Program.LogLevel.Debug);
+        }
     }
 }

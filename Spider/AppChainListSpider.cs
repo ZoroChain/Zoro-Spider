@@ -71,20 +71,16 @@ namespace Zoro.Spider
                 JToken result = json["result"];
                 if (result != null)
                 {
+                    Console.WriteLine($"SaveAppChain {chainHash}");
+
                     appchain.Save(result);
 
-                    StartChainSpider(chainHash);
+                    Program.StartChainSpider(chainHash);
                 }
             }
             catch (Exception)
             {
             }
-        }
-
-        private void StartChainSpider(UInt160 chainHash)
-        {
-            ChainSpider spider = new ChainSpider(chainHash);
-            spider.Start();
         }
 
         private void Process()
