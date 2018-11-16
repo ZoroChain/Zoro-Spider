@@ -52,7 +52,7 @@ namespace Zoro.Spider
             
             uint blockTime = uint.Parse(result["time"].ToString());
 
-            Program.Log($"SaveBlock {ChainHash} {height}", Program.LogLevel.Info);
+            Program.Log($"SaveBlock {ChainHash} {height}", Program.LogLevel.Warning);
             Program.Log(result.ToString(), Program.LogLevel.Debug);
 
             foreach (var tx in jObject["tx"])

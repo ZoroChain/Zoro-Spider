@@ -25,7 +25,7 @@ namespace Zoro.Spider
         {
             this.currentHeight = startHeight >= 0 ? (uint)startHeight : MysqlConn.getHeight(chainHash.ToString());
 
-            Program.Log($"Starting chain spider {chainHash} {currentHeight}", Program.LogLevel.Info);
+            Program.Log($"Starting chain spider {chainHash} {currentHeight}", Program.LogLevel.Warning);
 
             task = Task.Factory.StartNew(() =>
             {
@@ -95,7 +95,7 @@ namespace Zoro.Spider
                 while (currentHeight < blockCount)
                 {
                     currentHeight = GetBlock(currentHeight);
-                    Thread.Sleep(500);
+                    Thread.Sleep(50);
                 }
 
                 Thread.Sleep(1000);

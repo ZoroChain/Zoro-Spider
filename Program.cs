@@ -15,7 +15,7 @@ namespace Zoro.Spider
             Debug
         }
 
-        private static LogLevel logLevel = LogLevel.Info;
+        private static LogLevel logLevel = LogLevel.Warning;
         private static object logLock = new object();
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

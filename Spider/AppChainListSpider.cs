@@ -96,9 +96,14 @@ namespace Zoro.Spider
                 {
                     UInt160[] array = list.Where(p => !currentList.Contains(p)).ToArray();
 
-                    foreach (var hash in array)
+                    if (array.Length > 0)
                     {
-                        GetAppChainState(hash);
+                        currentList.AddRange(array);
+
+                        foreach (var hash in array)
+                        {
+                            GetAppChainState(hash);
+                        }
                     }
                 }
 
