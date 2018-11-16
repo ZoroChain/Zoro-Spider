@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace Zoro.Spider
@@ -9,7 +10,7 @@ namespace Zoro.Spider
         public string MysqlConfig { get; }
         public string DataBaseName { get; }
         public string RpcUrl { get; }
-        public int Restart { get; }
+        public List<ChainSettings> ChainSettings { get; }
 
         public static Settings Default { get; }
 
@@ -33,7 +34,28 @@ namespace Zoro.Spider
 
             DataBaseName = section.GetSection("MySql").GetSection("database").Value;
             RpcUrl = section.GetSection("RPC").GetSection("url").Value;
-            Restart = GetValueOrDefault(section.GetSection("Restart"), 0, p => int.Parse(p));
+
+            this.ChainSettings = section.GetSection("Chains").GetChildren().Select(p => new ChainSettings(p)).ToList();
+        }
+
+        public T GetValueOrDefault<T>(IConfigurationSection section, T defaultValue, Func<string, T> selector)
+        {
+            if (section.Value == null) return defaultValue;
+            return selector(section.Value);
+        }
+    }
+
+    internal class ChainSettings
+    {
+        public string Name { get; }
+        public string Hash { get; }
+        public int StartHeight { get; }
+
+        public ChainSettings(IConfigurationSection section)
+        {
+            Name = GetValueOrDefault(section.GetSection("Name"), "", p => p);
+            Hash = GetValueOrDefault(section.GetSection("Hash"), "", p => p);
+            StartHeight = GetValueOrDefault(section.GetSection("StartHeight"), 0, p => int.Parse(p));
         }
 
         public T GetValueOrDefault<T>(IConfigurationSection section, T defaultValue, Func<string, T> selector)

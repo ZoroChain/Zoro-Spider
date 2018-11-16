@@ -18,12 +18,15 @@ namespace Zoro.Spider
         public ChainSpider(UInt160 chainHash)
         {
             this.chainHash = chainHash;
-            this.currentHeight = Settings.Default.Restart == 1 ? 0 : MysqlConn.getHeight(chainHash.ToString());
             block = new SaveBlock(wc, chainHash);
         }
 
-        public void Start()
+        public void Start(int startHeight)
         {
+            this.currentHeight = startHeight >= 0 ? (uint)startHeight : MysqlConn.getHeight(chainHash.ToString());
+
+            Program.Log($"Starting chain spider {chainHash} {currentHeight}", Program.LogLevel.Info);
+
             task = Task.Factory.StartNew(() =>
             {
                 Process();
@@ -92,7 +95,7 @@ namespace Zoro.Spider
                 while (currentHeight < blockCount)
                 {
                     currentHeight = GetBlock(currentHeight);
-                    Thread.Sleep(10);
+                    Thread.Sleep(500);
                 }
 
                 Thread.Sleep(1000);

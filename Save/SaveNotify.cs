@@ -43,9 +43,10 @@ namespace Zoro.Spider
                 result = json["result"];
                 executions = result["executions"].First as JToken;
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 Program.Log($"error occured when call getapplicationlog with txid ={jToken["txid"]}", Program.LogLevel.Error);
+                throw e;
             }
             if (result != null && executions != null)
             {

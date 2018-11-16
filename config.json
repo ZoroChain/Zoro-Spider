@@ -10,6 +10,27 @@
     "RPC": {
       "url": "http://115.159.53.39:20332"
     },
-    "Restart": 0
+    "Chains": [
+      {
+        "Hash": "",
+        "Name": "Root+",
+        "StartHeight": 0
+      },
+      {
+        "Hash": "",
+        "Name": "Game+",
+        "StartHeight": 0
+      },
+      {
+        "Hash": "",
+        "Name": "Test+",
+        "StartHeight": 0
+      },
+      {
+        "Hash": "",
+        "Name": "App+",
+        "StartHeight": 0
+      }
+    ]
   }
 }

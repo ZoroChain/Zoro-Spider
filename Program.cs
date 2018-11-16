@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace Zoro.Spider
 {
@@ -62,7 +63,11 @@ namespace Zoro.Spider
             MysqlConn.dbname = Settings.Default.DataBaseName;
 
             // 开始抓取根链的数据
-            StartChainSpider(UInt160.Zero);
+            if (IsMyInterestedChain("Root", "", out int startHeight))
+            {
+                StartChainSpider(UInt160.Zero, startHeight);
+            }
+
             StartAppChainListSpider();
 
             ProjectInfo.tail();
@@ -73,12 +78,41 @@ namespace Zoro.Spider
             }
         }
 
-        public static void StartChainSpider(UInt160 chainHash)
+        public static bool IsMyInterestedChain(string name, string hash, out int startHeight)
         {
-            Log($"Starting chain spider {chainHash}", LogLevel.Info);
+            foreach (var chain in Settings.Default.ChainSettings)
+            {
+                if ((chain.Hash.Length > 0 && chain.Hash == hash) || IsInterestedName(chain.Name, name))
+                {
+                    startHeight = chain.StartHeight;
+                    return true;
+                }
+            }
 
+            startHeight = 0;
+            return false;
+        }
+
+        public static bool IsInterestedName(string chainName, string name)
+        {
+            if (chainName.Length > 0 && chainName == name)
+                return true;
+
+            if (chainName.Contains("+"))
+            {
+                Regex reg = new Regex(@chainName);
+
+                bool IsMatch = reg.IsMatch(name);
+                return IsMatch;
+            }
+
+            return false;
+        }
+
+        public static void StartChainSpider(UInt160 chainHash, int startHeight)
+        {
             ChainSpider spider = new ChainSpider(chainHash);
-            spider.Start();
+            spider.Start(startHeight);
         }
 
         static void StartAppChainListSpider()

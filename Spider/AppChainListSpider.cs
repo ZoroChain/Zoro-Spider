@@ -74,7 +74,10 @@ namespace Zoro.Spider
                 {
                     appchain.Save(result);
 
-                    Program.StartChainSpider(chainHash);
+                    if (Program.IsMyInterestedChain(result["name"].ToString(), chainHash.ToString(), out int startHeight))
+                    {
+                        Program.StartChainSpider(chainHash, startHeight);
+                    }
                 }
             }
             catch (Exception)
