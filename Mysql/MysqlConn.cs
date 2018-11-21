@@ -145,9 +145,8 @@ namespace Zoro.Spider
             catch (Exception e)
             {
                 Program.Log($"Error when execute Update with {tableName}, reason: {e.ToString()}", Program.LogLevel.Error);
+                throw e;
             }
-
-            return 0;
         }
 
         /// <summary>
@@ -209,8 +208,8 @@ namespace Zoro.Spider
             catch(Exception e)
             {
                 Program.Log($"Error when execute Update with {tableName}, reason: {e.ToString()}", Program.LogLevel.Error);
+                throw e;
             }
-            return 0;
         }
 
         public static uint getHeight(string chainHash) {
