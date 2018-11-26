@@ -1,20 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using Newtonsoft.Json.Linq;
 
 namespace Zoro.Spider
 {
     class SaveUTXO : SaveBase
     {
-        public SaveUTXO(UInt160 chainHash)
+        private MysqlConn conn = null;
+
+        public SaveUTXO(MysqlConn conn, UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.UTXO);
+            this.conn = conn;
         }
 
         public override bool CreateTable(string name)
         {
-            MysqlConn.CreateTable(TableType.UTXO, name);
+            conn.CreateTable(TableType.UTXO, name);
             return true;
         }
 
@@ -43,8 +47,15 @@ namespace Zoro.Spider
                 slist.Add(result["used"].ToString());
                 slist.Add(result["useHeight"].ToString());
                 slist.Add(result["claimed"].ToString());
-                MysqlConn.ExecuteDataInsert(DataTableName, slist);
 
+                Dictionary<string, string> dictionary = new Dictionary<string, string>();
+                dictionary.Add("txid", result["txid"].ToString());
+                dictionary.Add("createHeight", blockHeight.ToString());
+                DataSet ds = conn.ExecuteDataSet(DataTableName, dictionary);
+                if (ds.Tables[0].Rows.Count == 0)
+                {
+                    conn.ExecuteDataInsert(DataTableName, slist);
+                }
                 //var utxoPath = "utxo" + Path.DirectorySeparatorChar + result["txid"] + "_" + result["n"] + "_" + result["addr"] + ".txt";
                 //File.Delete(utxoPath);
                 //File.WriteAllText(utxoPath, result.ToString(), Encoding.UTF8);
@@ -63,7 +74,7 @@ namespace Zoro.Spider
             Dictionary<string, string> where = new Dictionary<string, string>();
             where.Add("txid", txid);
             where.Add("n", voutNum);
-            MysqlConn.Update(DataTableName, dirs, where);
+            conn.Update(DataTableName, dirs, where);
 
             //JObject result = JObject.Parse(File.ReadAllText(path, Encoding.UTF8));
             //result["used"] = 1;

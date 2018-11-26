@@ -1,24 +1,26 @@
 ﻿using System.Net;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using System.Data;
 
 namespace Zoro.Spider
 {
     class SaveBlock : SaveBase
     {
         private SaveTransaction trans;
+        private MysqlConn conn;
 
-        public SaveBlock(WebClient wc, UInt160 chainHash)
+        public SaveBlock(WebClient wc, MysqlConn conn, UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.Block);
-
-            trans = new SaveTransaction(wc, chainHash);
+            this.conn = conn;
+            trans = new SaveTransaction(wc, conn, chainHash);
         }
 
         public override bool CreateTable(string name)
         {
-            MysqlConn.CreateTable(TableType.Block, name);
+            conn.CreateTable(TableType.Block, name);
             return true;
         }
 
@@ -48,7 +50,13 @@ namespace Zoro.Spider
             slist.Add(jObject["nextconsensus"].ToString());
             slist.Add(jObject["script"].ToString());
             slist.Add(jObject["tx"].ToString());
-            MysqlConn.ExecuteDataInsert(DataTableName, slist);
+
+            Dictionary<string, string> dictionary = new Dictionary<string, string>();
+            dictionary.Add("hash", jObject["hash"].ToString());
+            DataSet ds = conn.ExecuteDataSet(DataTableName, dictionary);
+            if (ds.Tables[0].Rows.Count == 0) {
+                conn.ExecuteDataInsert(DataTableName, slist);
+            }           
             
             uint blockTime = uint.Parse(result["time"].ToString());
 

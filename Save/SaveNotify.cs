@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Globalization;
 using Newtonsoft.Json.Linq;
+using System.Data;
 
 namespace Zoro.Spider
 {
@@ -13,21 +14,23 @@ namespace Zoro.Spider
         private WebClient wc;
         private SaveNEP5Asset nep5Asset;
         private SaveNEP5Transfer nep5Transfer;
+        private MysqlConn conn;
 
-        public SaveNotify(WebClient wc, UInt160 chainHash)
+        public SaveNotify(WebClient wc, MysqlConn conn,UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.Notify);
+            this.conn = conn;
 
-            nep5Asset = new SaveNEP5Asset(wc, chainHash);
-            nep5Transfer = new SaveNEP5Transfer(chainHash);
+            nep5Asset = new SaveNEP5Asset(wc, conn, chainHash);
+            nep5Transfer = new SaveNEP5Transfer(conn, chainHash);
 
             this.wc = wc;
         }
 
         public override bool CreateTable(string name)
         {
-            MysqlConn.CreateTable(TableType.Notify, name);
+            conn.CreateTable(TableType.Notify, name);
             return true;
         }
 
@@ -65,7 +68,15 @@ namespace Zoro.Spider
                 slist.Add(executions["stack"].ToString());
                 slist.Add(executions["notifications"].ToString());
                 slist.Add(blockHeight.ToString());
-                MysqlConn.ExecuteDataInsert(DataTableName, slist);
+
+                Dictionary<string, string> dictionary = new Dictionary<string, string>();
+                dictionary.Add("txid", jToken["txid"].ToString());
+                dictionary.Add("blockindex", blockHeight.ToString());
+                DataSet ds = conn.ExecuteDataSet(DataTableName, dictionary);
+                if (ds.Tables[0].Rows.Count == 0)
+                {
+                    conn.ExecuteDataInsert(DataTableName, slist);
+                }
 
                 Program.Log($"SaveNotify {ChainHash} {jToken["txid"]}", Program.LogLevel.Info);
                 Program.Log(result.ToString(), Program.LogLevel.Debug);

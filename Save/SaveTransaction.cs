@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json.Linq;
+using System.Data;
 
 namespace Zoro.Spider
 {
@@ -13,21 +14,24 @@ namespace Zoro.Spider
         private SaveAsset asset;
         private SaveNotify notify;
 
-        public SaveTransaction(WebClient wc, UInt160 chainHash)
+        private MysqlConn conn = null;
+
+        public SaveTransaction(WebClient wc, MysqlConn conn, UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.Transaction);
+            this.conn = conn;
 
-            utxo = new SaveUTXO(chainHash);
-            address = new SaveAddress(chainHash);
-            addressTrans = new SaveAddressTransaction(chainHash);
-            asset = new SaveAsset(chainHash);
-            notify = new SaveNotify(wc, chainHash);
+            utxo = new SaveUTXO(conn, chainHash);
+            address = new SaveAddress(conn, chainHash);
+            addressTrans = new SaveAddressTransaction(conn, chainHash);
+            asset = new SaveAsset(conn,chainHash);
+            notify = new SaveNotify(wc, conn, chainHash);
         }
 
         public override bool CreateTable(string name)
         {
-            MysqlConn.CreateTable(TableType.Transaction, name);
+            conn.CreateTable(TableType.Transaction, name);
             return true;
         }
 
@@ -60,7 +64,15 @@ namespace Zoro.Spider
             slist.Add(result["scripts"].ToString());
             slist.Add(result["nonce"].ToString());
             slist.Add(blockHeight.ToString());
-            MysqlConn.ExecuteDataInsert(DataTableName, slist);
+
+            Dictionary<string, string> dictionary = new Dictionary<string, string>();
+            dictionary.Add("txid", jObject["txid"].ToString());
+            dictionary.Add("blockheight", blockHeight.ToString());
+            DataSet ds = conn.ExecuteDataSet(DataTableName, dictionary);
+            if (ds.Tables[0].Rows.Count == 0)
+            {
+                conn.ExecuteDataInsert(DataTableName, slist);
+            }
 
             Program.Log($"SaveTransaction {ChainHash} {blockHeight}", Program.LogLevel.Info);
             Program.Log(result.ToString(), Program.LogLevel.Debug);

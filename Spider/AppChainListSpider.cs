@@ -12,12 +12,16 @@ namespace Zoro.Spider
     {
         private Task task;
         private WebClient wc = new WebClient();
-        private SaveHashlist hashlist = new SaveHashlist();
-        private SaveAppChain appchain = new SaveAppChain();
+        private MysqlConn conn;
+        private SaveHashlist hashlist;
+        private SaveAppChain appchain;
         private List<UInt160> currentList = new List<UInt160>();
 
         public void Start()
         {
+            conn = new MysqlConn(MysqlConn.conf);
+            hashlist = new SaveHashlist(conn);
+            appchain = new SaveAppChain(conn);
             task = Task.Factory.StartNew(() =>
             {
                 Process();

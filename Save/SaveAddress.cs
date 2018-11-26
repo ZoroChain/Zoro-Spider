@@ -6,15 +6,17 @@ namespace Zoro.Spider
 {
     class SaveAddress : SaveBase
     {
-        public SaveAddress(UInt160 chainHash)
+        private MysqlConn conn = null;
+        public SaveAddress(MysqlConn conn, UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.Address);
+            this.conn = conn;
         }
 
         public override bool CreateTable(string name)
         {
-            MysqlConn.CreateTable(TableType.Address, name);
+            conn.CreateTable(TableType.Address, name);
             return true;
         }
 
@@ -24,7 +26,7 @@ namespace Zoro.Spider
             {
                 Dictionary<string, string> selectWhere = new Dictionary<string, string>();
                 selectWhere.Add("addr", j["address"].ToString());
-                DataTable dt = MysqlConn.ExecuteDataSet(DataTableName, selectWhere).Tables[0];
+                DataTable dt = conn.ExecuteDataSet(DataTableName, selectWhere).Tables[0];
                 if (dt.Rows.Count != 0)
                 {
                     Dictionary<string, string> dirs = new Dictionary<string, string>();
@@ -32,7 +34,7 @@ namespace Zoro.Spider
                     dirs.Add("txcount", (int.Parse(dt.Rows[0]["txcount"].ToString()) + 1) + "");
                     Dictionary<string, string> where = new Dictionary<string, string>();
                     where.Add("addr", dt.Rows[0]["addr"].ToString());
-                    MysqlConn.Update(DataTableName, dirs, where);
+                    conn.Update(DataTableName, dirs, where);
                 }
                 else
                 {
@@ -47,7 +49,7 @@ namespace Zoro.Spider
                     slist.Add(blockHeight.ToString());
                     slist.Add(blockHeight.ToString());
                     slist.Add("1");
-                    MysqlConn.ExecuteDataInsert(DataTableName, slist);
+                    conn.ExecuteDataInsert(DataTableName, slist);
                 }
             }
         }

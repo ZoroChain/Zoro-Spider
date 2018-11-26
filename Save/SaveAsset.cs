@@ -1,14 +1,17 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using System.Data;
 
 namespace Zoro.Spider
 {
     class SaveAsset : SaveBase
     {
-        public SaveAsset(UInt160 chainHash)
+        private MysqlConn conn = null;
+        public SaveAsset(MysqlConn conn,UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable("asset");
+            this.conn = conn;
         }
 
         public override bool CreateTable(string name)
@@ -45,7 +48,14 @@ namespace Zoro.Spider
             slist.Add(result["issuer"].ToString());
             slist.Add(result["expiration"].ToString());
             slist.Add(result["frozen"].ToString());
-            MysqlConn.ExecuteDataInsert(DataTableName, slist);
+
+            Dictionary<string, string> dictionary = new Dictionary<string, string>();
+            dictionary.Add("id", result["id"].ToString());
+            DataSet ds = conn.ExecuteDataSet(DataTableName, dictionary);
+            if (ds.Tables[0].Rows.Count == 0)
+            {
+                conn.ExecuteDataInsert(DataTableName, slist);
+            }
 
             Program.Log($"SaveAsset {ChainHash} {result["name"]}", Program.LogLevel.Info);
             Program.Log(slist.ToString(), Program.LogLevel.Debug);

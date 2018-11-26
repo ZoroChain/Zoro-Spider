@@ -10,6 +10,7 @@ namespace Zoro.Spider
     {
         private Task task;
         private WebClient wc = new WebClient();
+        private MysqlConn conn = null;
         private SaveBlock block;
 
         private UInt160 chainHash;
@@ -18,12 +19,13 @@ namespace Zoro.Spider
         public ChainSpider(UInt160 chainHash)
         {
             this.chainHash = chainHash;
-            block = new SaveBlock(wc, chainHash);
+            conn = new MysqlConn(MysqlConn.conf);
+            block = new SaveBlock(wc, conn, chainHash);           
         }
 
         public void Start(int startHeight)
         {
-            this.currentHeight = startHeight >= 0 ? (uint)startHeight : MysqlConn.getHeight(chainHash.ToString());
+            this.currentHeight = startHeight >= 0 ? (uint)startHeight : conn.getHeight(chainHash.ToString());
 
             Program.Log($"Starting chain spider {chainHash} {currentHeight}", Program.LogLevel.Warning);
 
@@ -74,7 +76,7 @@ namespace Zoro.Spider
                 {
                     block.Save(wc, result, height);
                     //每获取一个块做一次高度记录，方便下次启动时做开始高度
-                    MysqlConn.SaveAndUpdateHeight(chainHash.ToString(), height.ToString());
+                    conn.SaveAndUpdateHeight(chainHash.ToString(), height.ToString());
                     return height + 1;
                 }
             }

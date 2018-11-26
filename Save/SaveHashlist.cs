@@ -4,21 +4,23 @@ namespace Zoro.Spider
 {
     class SaveHashlist : SaveBase
     {
-        public SaveHashlist()
+        private MysqlConn conn;
+        public SaveHashlist(MysqlConn conn)
             : base(null)
         {
             InitDataTable(TableType.Hash_List);
+            this.conn = conn;
         }
 
         public override bool CreateTable(string name)
         {
-
+            conn.CreateTable(TableType.Hash_List, name);
             return true;
         }
 
         public void Save(JToken jObject)
         {
-            MysqlConn.SaveAndUpdataHashList(DataTableName, jObject["hashlist"].ToString());
+            conn.SaveAndUpdataHashList(DataTableName, jObject["hashlist"].ToString());
         }
     }
 }
