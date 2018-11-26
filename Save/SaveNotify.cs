@@ -1,36 +1,32 @@
 ﻿using System;
 using System.Net;
 using System.Text;
+using System.Data;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Globalization;
 using Newtonsoft.Json.Linq;
-using System.Data;
 
 namespace Zoro.Spider
 {
     class SaveNotify : SaveBase
     {
-        private WebClient wc;
+        private WebClient wc = new WebClient();
         private SaveNEP5Asset nep5Asset;
         private SaveNEP5Transfer nep5Transfer;
-        private MysqlConn conn;
 
-        public SaveNotify(WebClient wc, MysqlConn conn,UInt160 chainHash)
+        public SaveNotify(UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.Notify);
-            this.conn = conn;
 
-            nep5Asset = new SaveNEP5Asset(wc, conn, chainHash);
-            nep5Transfer = new SaveNEP5Transfer(conn, chainHash);
-
-            this.wc = wc;
+            nep5Asset = new SaveNEP5Asset(wc, chainHash);
+            nep5Transfer = new SaveNEP5Transfer(chainHash);
         }
 
         public override bool CreateTable(string name)
         {
-            conn.CreateTable(TableType.Notify, name);
+            MysqlConn.CreateTable(TableType.Notify, name);
             return true;
         }
 
@@ -72,10 +68,10 @@ namespace Zoro.Spider
                 Dictionary<string, string> dictionary = new Dictionary<string, string>();
                 dictionary.Add("txid", jToken["txid"].ToString());
                 dictionary.Add("blockindex", blockHeight.ToString());
-                DataSet ds = conn.ExecuteDataSet(DataTableName, dictionary);
+                DataSet ds = MysqlConn.ExecuteDataSet(DataTableName, dictionary);
                 if (ds.Tables[0].Rows.Count == 0)
                 {
-                    conn.ExecuteDataInsert(DataTableName, slist);
+                    MysqlConn.ExecuteDataInsert(DataTableName, slist);
                 }
 
                 Program.Log($"SaveNotify {ChainHash} {jToken["txid"]}", Program.LogLevel.Info);

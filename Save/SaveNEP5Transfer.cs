@@ -6,17 +6,15 @@ namespace Zoro.Spider
 {
     class SaveNEP5Transfer : SaveBase
     {
-        private MysqlConn conn;
-        public SaveNEP5Transfer(MysqlConn conn, UInt160 chainHash)
+        public SaveNEP5Transfer(UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.NEP5Transfer);
-            this.conn = conn;
         }
 
         public override bool CreateTable(string name)
         {
-            conn.CreateTable(TableType.NEP5Transfer, name);
+            MysqlConn.CreateTable(TableType.NEP5Transfer, name);
             return true;
         }
 
@@ -34,10 +32,10 @@ namespace Zoro.Spider
             Dictionary<string, string> dictionary = new Dictionary<string, string>();
             dictionary.Add("txid", jToken["txid"].ToString());
             dictionary.Add("blockindex", jToken["blockindex"].ToString());
-            DataSet ds = conn.ExecuteDataSet(DataTableName, dictionary);
+            DataSet ds = MysqlConn.ExecuteDataSet(DataTableName, dictionary);
             if (ds.Tables[0].Rows.Count == 0)
             {
-                conn.ExecuteDataInsert(DataTableName, slist);
+                MysqlConn.ExecuteDataInsert(DataTableName, slist);
             }
 
             Program.Log($"SaveNEP5Transfer {ChainHash} {jToken["blockindex"]} {jToken["txid"]}", Program.LogLevel.Info);

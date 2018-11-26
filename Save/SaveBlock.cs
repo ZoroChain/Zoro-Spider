@@ -8,19 +8,18 @@ namespace Zoro.Spider
     class SaveBlock : SaveBase
     {
         private SaveTransaction trans;
-        private MysqlConn conn;
 
-        public SaveBlock(WebClient wc, MysqlConn conn, UInt160 chainHash)
+        public SaveBlock(UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.Block);
-            this.conn = conn;
-            trans = new SaveTransaction(wc, conn, chainHash);
+
+            trans = new SaveTransaction(chainHash);
         }
 
         public override bool CreateTable(string name)
         {
-            conn.CreateTable(TableType.Block, name);
+            MysqlConn.CreateTable(TableType.Block, name);
             return true;
         }
 
@@ -53,10 +52,10 @@ namespace Zoro.Spider
 
             Dictionary<string, string> dictionary = new Dictionary<string, string>();
             dictionary.Add("hash", jObject["hash"].ToString());
-            DataSet ds = conn.ExecuteDataSet(DataTableName, dictionary);
+            DataSet ds = MysqlConn.ExecuteDataSet(DataTableName, dictionary);
             if (ds.Tables[0].Rows.Count == 0) {
-                conn.ExecuteDataInsert(DataTableName, slist);
-            }           
+                MysqlConn.ExecuteDataInsert(DataTableName, slist);
+            }
             
             uint blockTime = uint.Parse(result["time"].ToString());
 

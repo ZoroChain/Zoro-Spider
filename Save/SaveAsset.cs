@@ -6,12 +6,10 @@ namespace Zoro.Spider
 {
     class SaveAsset : SaveBase
     {
-        private MysqlConn conn = null;
-        public SaveAsset(MysqlConn conn,UInt160 chainHash)
+        public SaveAsset(UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable("asset");
-            this.conn = conn;
         }
 
         public override bool CreateTable(string name)
@@ -51,10 +49,10 @@ namespace Zoro.Spider
 
             Dictionary<string, string> dictionary = new Dictionary<string, string>();
             dictionary.Add("id", result["id"].ToString());
-            DataSet ds = conn.ExecuteDataSet(DataTableName, dictionary);
+            DataSet ds = MysqlConn.ExecuteDataSet(DataTableName, dictionary);
             if (ds.Tables[0].Rows.Count == 0)
             {
-                conn.ExecuteDataInsert(DataTableName, slist);
+                MysqlConn.ExecuteDataInsert(DataTableName, slist);
             }
 
             Program.Log($"SaveAsset {ChainHash} {result["name"]}", Program.LogLevel.Info);

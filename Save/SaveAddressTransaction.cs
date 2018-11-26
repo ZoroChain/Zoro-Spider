@@ -6,17 +6,15 @@ namespace Zoro.Spider
 {
     class SaveAddressTransaction : SaveBase
     {
-        private MysqlConn conn = null;
-        public SaveAddressTransaction(MysqlConn conn, UInt160 chainHash)
+        public SaveAddressTransaction(UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.Address_tx);
-            this.conn = conn;
         }
 
         public override bool CreateTable(string name)
         {
-            conn.CreateTable(TableType.Address_tx, name);
+            MysqlConn.CreateTable(TableType.Address_tx, name);
             return true;
         }
 
@@ -38,10 +36,10 @@ namespace Zoro.Spider
                 Dictionary<string, string> dictionary = new Dictionary<string, string>();
                 dictionary.Add("txid", jObject["txid"].ToString());
                 dictionary.Add("blockindex", blockHeight.ToString());
-                DataSet ds = conn.ExecuteDataSet(DataTableName, dictionary);
+                DataSet ds = MysqlConn.ExecuteDataSet(DataTableName, dictionary);
                 if (ds.Tables[0].Rows.Count == 0)
                 {
-                    conn.ExecuteDataInsert(DataTableName, slist);
+                    MysqlConn.ExecuteDataInsert(DataTableName, slist);
                 }
             }
 

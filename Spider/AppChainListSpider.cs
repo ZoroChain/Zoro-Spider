@@ -12,16 +12,12 @@ namespace Zoro.Spider
     {
         private Task task;
         private WebClient wc = new WebClient();
-        private MysqlConn conn;
-        private SaveHashlist hashlist;
-        private SaveAppChain appchain;
+        private SaveHashlist hashlist = new SaveHashlist();
+        private SaveAppChain appchain = new SaveAppChain();
         private List<UInt160> currentList = new List<UInt160>();
 
         public void Start()
         {
-            conn = new MysqlConn(MysqlConn.conf);
-            hashlist = new SaveHashlist(conn);
-            appchain = new SaveAppChain(conn);
             task = Task.Factory.StartNew(() =>
             {
                 Process();
@@ -80,7 +76,18 @@ namespace Zoro.Spider
 
                     if (Program.IsMyInterestedChain(result["name"].ToString(), chainHash.ToString(), out int startHeight))
                     {
-                        Program.StartChainSpider(chainHash, startHeight);
+                        JToken seedlist = result["seedlist"];
+
+                        List<string> list = new List<string>();
+                        foreach(var seed in seedlist)
+                        {
+                            list.Add(seed.ToString());
+                        }
+
+                        if (Program.CheckSeedList(list.ToArray()))
+                        {
+                            Program.StartChainSpider(chainHash, startHeight);
+                        }
                     }
                 }
             }

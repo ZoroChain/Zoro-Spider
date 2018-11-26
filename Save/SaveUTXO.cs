@@ -1,24 +1,20 @@
-﻿using System;
+﻿using System.Data;
 using System.Collections.Generic;
-using System.Data;
 using Newtonsoft.Json.Linq;
 
 namespace Zoro.Spider
 {
     class SaveUTXO : SaveBase
     {
-        private MysqlConn conn = null;
-
-        public SaveUTXO(MysqlConn conn, UInt160 chainHash)
+        public SaveUTXO(UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.UTXO);
-            this.conn = conn;
         }
 
         public override bool CreateTable(string name)
         {
-            conn.CreateTable(TableType.UTXO, name);
+            MysqlConn.CreateTable(TableType.UTXO, name);
             return true;
         }
 
@@ -51,10 +47,10 @@ namespace Zoro.Spider
                 Dictionary<string, string> dictionary = new Dictionary<string, string>();
                 dictionary.Add("txid", result["txid"].ToString());
                 dictionary.Add("createHeight", blockHeight.ToString());
-                DataSet ds = conn.ExecuteDataSet(DataTableName, dictionary);
+                DataSet ds = MysqlConn.ExecuteDataSet(DataTableName, dictionary);
                 if (ds.Tables[0].Rows.Count == 0)
                 {
-                    conn.ExecuteDataInsert(DataTableName, slist);
+                    MysqlConn.ExecuteDataInsert(DataTableName, slist);
                 }
                 //var utxoPath = "utxo" + Path.DirectorySeparatorChar + result["txid"] + "_" + result["n"] + "_" + result["addr"] + ".txt";
                 //File.Delete(utxoPath);
@@ -74,7 +70,7 @@ namespace Zoro.Spider
             Dictionary<string, string> where = new Dictionary<string, string>();
             where.Add("txid", txid);
             where.Add("n", voutNum);
-            conn.Update(DataTableName, dirs, where);
+            MysqlConn.Update(DataTableName, dirs, where);
 
             //JObject result = JObject.Parse(File.ReadAllText(path, Encoding.UTF8));
             //result["used"] = 1;

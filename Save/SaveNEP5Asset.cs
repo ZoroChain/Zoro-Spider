@@ -13,19 +13,17 @@ namespace Zoro.Spider
     class SaveNEP5Asset : SaveBase
     {
         private WebClient wc;
-        private MysqlConn conn;
 
-        public SaveNEP5Asset(WebClient wc, MysqlConn conn, UInt160 chainHash)
+        public SaveNEP5Asset(WebClient wc, UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.NEP5Asset);
-            this.conn = conn;
             this.wc = wc;
         }
 
         public override bool CreateTable(string name)
         {
-            conn.CreateTable(TableType.NEP5Asset, name);
+            MysqlConn.CreateTable(TableType.NEP5Asset, name);
             return true;
         }
 
@@ -34,7 +32,7 @@ namespace Zoro.Spider
             string contract = jToken["assetid"].ToString();
             Dictionary<string, string> where = new Dictionary<string, string>();
             where.Add("assetid", contract);
-            DataTable dt = conn.ExecuteDataSet(DataTableName, where).Tables[0];
+            DataTable dt = MysqlConn.ExecuteDataSet(DataTableName, where).Tables[0];
             if (dt.Rows.Count == 0)
             {
                 Start(contract);
@@ -78,10 +76,10 @@ namespace Zoro.Spider
 
             Dictionary<string, string> dictionary = new Dictionary<string, string>();
             dictionary.Add("assetid", Contract.ToString());
-            DataSet ds = conn.ExecuteDataSet(DataTableName, dictionary);
+            DataSet ds = MysqlConn.ExecuteDataSet(DataTableName, dictionary);
             if (ds.Tables[0].Rows.Count == 0)
             {
-                conn.ExecuteDataInsert(DataTableName, slist);
+                MysqlConn.ExecuteDataInsert(DataTableName, slist);
             }
 
             Program.Log($"SaveNEP5Asset {ChainHash} {Contract}", Program.LogLevel.Info);

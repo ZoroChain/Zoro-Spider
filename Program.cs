@@ -1,5 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Zoro.Spider
@@ -107,6 +110,46 @@ namespace Zoro.Spider
             }
 
             return false;
+        }
+
+        public static bool CheckSeedList(string[] seedlist)
+        {
+            foreach (string hostAndPort in seedlist)
+            {
+                string[] p = hostAndPort.Split(':');
+                if (p.Length < 2)
+                    return false;
+
+                IPEndPoint seed;
+                try
+                {
+                    seed = GetIPEndpointFromHostPort(p[0], int.Parse(p[1]));
+                }
+                catch (AggregateException)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public static IPEndPoint GetIPEndpointFromHostPort(string hostNameOrAddress, int port)
+        {
+            if (IPAddress.TryParse(hostNameOrAddress, out IPAddress ipAddress))
+                return new IPEndPoint(ipAddress, port);
+            IPHostEntry entry;
+            try
+            {
+                entry = Dns.GetHostEntry(hostNameOrAddress);
+            }
+            catch (SocketException)
+            {
+                return null;
+            }
+            ipAddress = entry.AddressList.FirstOrDefault(p => p.AddressFamily == AddressFamily.InterNetwork || p.IsIPv6Teredo);
+            if (ipAddress == null) return null;
+            return new IPEndPoint(ipAddress, port);
         }
 
         public static void StartChainSpider(UInt160 chainHash, int startHeight)

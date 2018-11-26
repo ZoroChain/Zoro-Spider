@@ -10,29 +10,24 @@ namespace Zoro.Spider
         public static string conf = "";
         public static string dbname = "";
 
-        MySqlConnection conn = null;
-        public MysqlConn(string conf) {
-            conn = new MySqlConnection(conf);
-            conn.Open();
-        }
-
         public static bool Exist(string tableName)
         {
             string cmdStr = $"select t.table_name from information_schema.TABLES t where t.TABLE_SCHEMA = '{dbname}' and t.TABLE_NAME = '{ tableName }' ";
-            using (MySqlConnection conn = new MySqlConnection(conf)) {
-                conn.Open();
+            using (MySqlConnection conn = new MySqlConnection(conf))
+            {
                 MySqlCommand cmd = new MySqlCommand(cmdStr, conn);
+                conn.Open();
                 MySqlDataReader reader = cmd.ExecuteReader();
                 if (reader.Read())
                 {
                     string name = reader.GetString(0);
                     return true;
                 }
-            }               
+            }
             return false;
         }
 
-        public void CreateTable(string type, string tableName)
+        public static void CreateTable(string type, string tableName)
         {
             string createSql = "";
             switch (type) {
@@ -71,47 +66,55 @@ namespace Zoro.Spider
                 " n int(11), asset varchar(255), value varchar(255), createHeight int(11), used varchar(255), useHeight int(11), claimed varchar(255))";
                     break;
                 case TableType.Hash_List:
-                    createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, hashlist varchar(255)";
+                    createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, hashlist longtext)";
                     break;
                 case TableType.Appchainstate:
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, version varchar(255), hash varchar(255), name varchar(255)," +
                 " owner varchar(255), timestamp varchar(255), seedlist varchar(2048), validators varchar(2048))";
                     break;
             }
-            try
+            using (MySqlConnection conn = new MySqlConnection(conf))
             {
-                using (MySqlCommand cmd = new MySqlCommand(createSql, conn))
+                conn.Open();
+                try
                 {
-                    cmd.ExecuteNonQuery();
+                    using (MySqlCommand cmd = new MySqlCommand(createSql, conn))
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                    Program.Log("建表成功 " + tableName, Program.LogLevel.Info);
                 }
-                Program.Log("建表成功 " + tableName, Program.LogLevel.Info);
-            }
-            catch (Exception e)
-            {
-                Program.Log($"建表失败 {tableName}, reason:{e.ToString()}", Program.LogLevel.Fatal);
+                catch (Exception e)
+                {
+                    Program.Log($"建表失败 {tableName}, reason:{e.ToString()}", Program.LogLevel.Fatal);
+                }
             }
         }
 
-        public DataSet ExecuteDataSet(string tableName, Dictionary<string, string> where)
+        public static DataSet ExecuteDataSet(string tableName, Dictionary<string, string> where)
         {
             try
             {
-                string select = "select * from " + tableName;
-                if (where.Count != 0)
+                using (MySqlConnection conn = new MySqlConnection(conf))
                 {
-                    select += " where";
+                    conn.Open();
+                    string select = "select * from " + tableName;
+                    if (where.Count != 0)
+                    {
+                        select += " where";
+                    }
+                    foreach (var dir in where)
+                    {
+                        select += " " + dir.Key + "='" + dir.Value + "'";
+                        select += " and";
+                    }
+                    if (where.Count > 0)
+                        select = select.Substring(0, select.Length - 4);
+                    MySqlDataAdapter adapter = new MySqlDataAdapter(select, conf);
+                    DataSet ds = new DataSet();
+                    adapter.Fill(ds);
+                    return ds;
                 }
-                foreach (var dir in where)
-                {
-                    select += " " + dir.Key + "='" + dir.Value + "'";
-                    select += " and";
-                }
-                if (where.Count > 0)
-                    select = select.Substring(0, select.Length - 4);
-                MySqlDataAdapter adapter = new MySqlDataAdapter(select, conf);
-                DataSet ds = new DataSet();
-                adapter.Fill(ds);
-                return ds;
             }
             catch (Exception e)
             {
@@ -120,20 +123,24 @@ namespace Zoro.Spider
             }
         }
 
-        public int ExecuteDataInsert(string tableName, List<string> parameter)
+        public static int ExecuteDataInsert(string tableName, List<string> parameter)
         {
             try
             {
-                string mysql = $"insert into " + tableName + " values (null,";
-                foreach (string param in parameter)
+                using (MySqlConnection conn = new MySqlConnection(conf))
                 {
-                    mysql += "'" + param + "',";
+                    conn.Open();
+                    string mysql = $"insert into " + tableName + " values (null,";
+                    foreach (string param in parameter)
+                    {
+                        mysql += "'" + param + "',";
+                    }
+                    mysql = mysql.Substring(0, mysql.Length - 1);
+                    mysql += ");";
+                    MySqlCommand mc = new MySqlCommand(mysql, conn);
+                    int count = mc.ExecuteNonQuery();
+                    return count;
                 }
-                mysql = mysql.Substring(0, mysql.Length - 1);
-                mysql += ");";
-                MySqlCommand mc = new MySqlCommand(mysql, conn);
-                int count = mc.ExecuteNonQuery();
-                return count;
             }
             catch (Exception e)
             {
@@ -145,29 +152,34 @@ namespace Zoro.Spider
         /// <summary>
         /// 修改数据
         /// </summary>
-        public int Update(string tableName, Dictionary<string, string> dirs, Dictionary<string, string> where)
+        public static int Update(string tableName, Dictionary<string, string> dirs, Dictionary<string, string> where)
         {
             try
             {
-                string update = $"update " + tableName + " set ";
-                foreach (var dir in dirs)
+                using (MySqlConnection conn = new MySqlConnection(conf))
                 {
-                    update += dir.Key + "='" + dir.Value + "',";
+                    conn.Open();
+                    string update = $"update " + tableName + " set ";
+                    foreach (var dir in dirs)
+                    {
+                        update += dir.Key + "='" + dir.Value + "',";
+                    }
+                    update = update.Substring(0, update.Length - 1);
+                    if (where.Count != 0)
+                        update += " where";
+                    foreach (var dir in where)
+                    {
+                        update += " " + dir.Key + "='" + dir.Value + "'";
+                        update += " and";
+                    }
+                    if (where.Count != 0)
+                        update = update.Substring(0, update.Length - 4);
+                    update += ";";
+                    MySqlCommand command = new MySqlCommand(update, conn);
+                    int count = command.ExecuteNonQuery();
+                    conn.Close();
+                    return count;
                 }
-                update = update.Substring(0, update.Length - 1);
-                if (where.Count != 0)
-                    update += " where";
-                foreach (var dir in where)
-                {
-                    update += " " + dir.Key + "='" + dir.Value + "'";
-                    update += " and";
-                }
-                if (where.Count != 0)
-                    update = update.Substring(0, update.Length - 4);
-                update += ";";
-                MySqlCommand command = new MySqlCommand(update, conn);
-                int count = command.ExecuteNonQuery();
-                return count;
             }
             catch(Exception e)
             {
@@ -176,7 +188,7 @@ namespace Zoro.Spider
             }
         }
 
-        public uint getHeight(string chainHash) {
+        public static uint getHeight(string chainHash) {
             var dir = new Dictionary<string, string>();
             dir.Add("chainhash", chainHash);
             DataTable dt = ExecuteDataSet("chainlistheight", dir).Tables[0];
@@ -189,7 +201,7 @@ namespace Zoro.Spider
             }
         }
 
-        public void SaveAndUpdateHeight(string chainHash, string height)
+        public static void SaveAndUpdateHeight(string chainHash, string height)
         {
             var dir = new Dictionary<string, string>();
             dir.Add("chainhash", chainHash);
@@ -209,7 +221,7 @@ namespace Zoro.Spider
             }
         }
 
-        public void SaveAndUpdataHashList(string table, string hashlist) {
+        public static void SaveAndUpdataHashList(string table, string hashlist) {
             var dir = new Dictionary<string, string>();
             DataTable dt = ExecuteDataSet(table, dir).Tables[0];
             if (dt.Rows.Count == 0)
@@ -225,7 +237,7 @@ namespace Zoro.Spider
             }
         }
 
-        public void SaveAndUpdataAppChainState(string table, List<string> hashlist)
+        public static void SaveAndUpdataAppChainState(string table, List<string> hashlist)
         {
             var dir = new Dictionary<string, string>();
             dir.Add("hash", hashlist[1]);

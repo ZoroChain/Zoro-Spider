@@ -1,22 +1,19 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
-using System.Data;
 
 namespace Zoro.Spider
 {
     class SaveAppChain : SaveBase
     {
-        private MysqlConn conn;
-        public SaveAppChain(MysqlConn conn)
+        public SaveAppChain()
             : base(null)
         {
             InitDataTable(TableType.Appchainstate);
-            this.conn = conn;
         }
 
         public override bool CreateTable(string name)
         {
-            conn.CreateTable(TableType.Appchainstate, name);
+            MysqlConn.CreateTable(TableType.Appchainstate, name);
             return true;
         }
 
@@ -36,7 +33,7 @@ namespace Zoro.Spider
 			slist.Add(jObject["seedlist"].ToString());
 			slist.Add(jObject["validators"].ToString());
 
-            conn.SaveAndUpdataAppChainState(DataTableName, slist);
+            MysqlConn.SaveAndUpdataAppChainState(DataTableName, slist);
 
             Program.Log($"SaveAppChain {jObject["hash"]} {jObject["name"]}", Program.LogLevel.Info);
             Program.Log(slist.ToString(), Program.LogLevel.Debug);

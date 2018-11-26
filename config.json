@@ -1,35 +1,30 @@
 ﻿{
   "ApplicationConfiguration": {
     "MySql": {
-      "database": "block",
+      "database": "block1",
       "server": "106.15.200.244",
       "user id": "root",
       "Password": "jingmian@mysql",
       "sslmode": "None"
     },
     "RPC": {
-      "url": "http://115.159.53.39:20332"
+      "url": "http://127.0.0.1:20332"
     },
     "Chains": [
       {
         "Hash": "",
         "Name": "Root+",
-        "StartHeight": 0
+        "StartHeight": -1
       },
       {
         "Hash": "",
         "Name": "Game+",
-        "StartHeight": 0
+        "StartHeight": -1
       },
       {
         "Hash": "",
         "Name": "Test+",
-        "StartHeight": 0
-      },
-      {
-        "Hash": "",
-        "Name": "App+",
-        "StartHeight": 0
+        "StartHeight": -1
       }
     ]
   }
