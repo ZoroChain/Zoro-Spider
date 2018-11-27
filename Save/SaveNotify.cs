@@ -44,7 +44,7 @@ namespace Zoro.Spider
             }
             catch (Exception e)
             {
-                Program.Log($"error occured when call getapplicationlog with txid ={jToken["txid"]}", Program.LogLevel.Error);
+                Program.Log($"error occured when call getapplicationlog, chain:{ChainHash} height:{blockHeight}", Program.LogLevel.Error);
                 throw e;
             }
             if (result != null && executions != null)
