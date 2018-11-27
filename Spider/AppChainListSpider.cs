@@ -54,9 +54,9 @@ namespace Zoro.Spider
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Program.Log("error occured when call getappchainhashlist", Program.LogLevel.Error);
+                Program.Log($"error occured when call getappchainhashlist, reason:{e.ToString()}", Program.LogLevel.Error);
             }
 
             return null;
@@ -91,9 +91,9 @@ namespace Zoro.Spider
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Program.Log($"error occured when call getappchainstate with chainHash ={chainHash}", Program.LogLevel.Error);
+                Program.Log($"error occured when call getappchainstate with chainHash ={chainHash}, reason:{e.ToString()}", Program.LogLevel.Error);
             }
         }
 

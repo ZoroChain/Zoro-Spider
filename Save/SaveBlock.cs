@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
-using System.Data;
+using System;
 
 namespace Zoro.Spider
 {
@@ -52,20 +52,29 @@ namespace Zoro.Spider
 
             Dictionary<string, string> dictionary = new Dictionary<string, string>();
             dictionary.Add("hash", jObject["hash"].ToString());
-            DataSet ds = MysqlConn.ExecuteDataSet(DataTableName, dictionary);
-            if (ds.Tables[0].Rows.Count == 0) {
+
+            DateTime dt = DateTime.Now;
+
+            bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
+            if (!exist) {
                 MysqlConn.ExecuteDataInsert(DataTableName, slist);
             }
             
             uint blockTime = uint.Parse(result["time"].ToString());
 
-            Program.Log($"SaveBlock {ChainHash} {height}", Program.LogLevel.Warning);
+            Program.Log($"SaveBlock {ChainHash} {height}", Program.LogLevel.Debug);
             Program.Log(result.ToString(), Program.LogLevel.Debug);
 
+            int numTx = 0;
             foreach (var tx in jObject["tx"])
             {
                 trans.Save(tx, height, blockTime);
+                numTx++;
             }
+
+            TimeSpan span = DateTime.Now - dt;
+
+            Program.Log($"BlockSaved {ChainHash} height:{height} tx:{numTx} time:{span:hh\\:mm\\:ss\\.fff}", Program.LogLevel.Warning);
         }
     }
 }

@@ -44,7 +44,7 @@ namespace Zoro.Spider
             }
             catch (Exception e)
             {
-                Program.Log($"error occured when call getapplicationlog, chain:{ChainHash} height:{blockHeight}", Program.LogLevel.Error);
+                Program.Log($"error occured when call getapplicationlog, chain:{ChainHash} height:{blockHeight}, reason:{e.ToString()}", Program.LogLevel.Error);
                 throw e;
             }
             if (result != null && executions != null)
@@ -68,8 +68,8 @@ namespace Zoro.Spider
                 Dictionary<string, string> dictionary = new Dictionary<string, string>();
                 dictionary.Add("txid", jToken["txid"].ToString());
                 dictionary.Add("blockindex", blockHeight.ToString());
-                DataSet ds = MysqlConn.ExecuteDataSet(DataTableName, dictionary);
-                if (ds.Tables[0].Rows.Count == 0)
+                bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
+                if (!exist)
                 {
                     MysqlConn.ExecuteDataInsert(DataTableName, slist);
                 }

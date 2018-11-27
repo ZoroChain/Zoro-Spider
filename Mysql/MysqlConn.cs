@@ -118,7 +118,43 @@ namespace Zoro.Spider
             }
             catch (Exception e)
             {
-                Program.Log($"Error when execute {tableName}, reason:{e.ToString()}", Program.LogLevel.Error);
+                Program.Log($"Error when execute select {tableName}, reason:{e.ToString()}", Program.LogLevel.Error);
+                throw e;
+            }
+        }
+
+        public static bool CheckExist(string tableName, Dictionary<string, string> where)
+        {
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection(conf))
+                {
+                    conn.Open();
+                    string select = "select id from " + tableName;
+                    if (where.Count != 0)
+                    {
+                        select += " where";
+                    }
+                    foreach (var dir in where)
+                    {
+                        select += " " + dir.Key + "='" + dir.Value + "'";
+                        select += " and";
+                    }
+                    if (where.Count > 0)
+                        select = select.Substring(0, select.Length - 4);
+
+                    MySqlCommand cmd = new MySqlCommand(select, conn);
+                    MySqlDataReader reader = cmd.ExecuteReader();
+                    if (reader.Read())
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+            }
+            catch (Exception e)
+            {
+                Program.Log($"Error when execute select {tableName}, reason:{e.ToString()}", Program.LogLevel.Error);
                 throw e;
             }
         }
@@ -144,7 +180,7 @@ namespace Zoro.Spider
             }
             catch (Exception e)
             {
-                Program.Log($"Error when execute Update with {tableName}, reason: {e.ToString()}", Program.LogLevel.Error);
+                Program.Log($"Error when execute insert with {tableName}, reason: {e.ToString()}", Program.LogLevel.Error);
                 throw e;
             }
         }
@@ -183,7 +219,7 @@ namespace Zoro.Spider
             }
             catch(Exception e)
             {
-                Program.Log($"Error when execute Update with {tableName}, reason: {e.ToString()}", Program.LogLevel.Error);
+                Program.Log($"Error when execute update with {tableName}, reason: {e.ToString()}", Program.LogLevel.Error);
                 throw e;
             }
         }

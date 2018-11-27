@@ -32,8 +32,8 @@ namespace Zoro.Spider
             Dictionary<string, string> dictionary = new Dictionary<string, string>();
             dictionary.Add("txid", jToken["txid"].ToString());
             dictionary.Add("blockindex", jToken["blockindex"].ToString());
-            DataSet ds = MysqlConn.ExecuteDataSet(DataTableName, dictionary);
-            if (ds.Tables[0].Rows.Count == 0)
+            bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
+            if (!exist)
             {
                 MysqlConn.ExecuteDataInsert(DataTableName, slist);
             }

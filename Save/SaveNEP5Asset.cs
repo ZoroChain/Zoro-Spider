@@ -30,8 +30,8 @@ namespace Zoro.Spider
             string contract = jToken["assetid"].ToString();
             Dictionary<string, string> where = new Dictionary<string, string>();
             where.Add("assetid", contract);
-            DataTable dt = MysqlConn.ExecuteDataSet(DataTableName, where).Tables[0];
-            if (dt.Rows.Count == 0)
+            bool exist = MysqlConn.CheckExist(DataTableName, where);
+            if (!exist)
             {
                 Start(contract);
             }
@@ -81,8 +81,8 @@ namespace Zoro.Spider
 
                 Dictionary<string, string> dictionary = new Dictionary<string, string>();
                 dictionary.Add("assetid", Contract.ToString());
-                DataSet ds = MysqlConn.ExecuteDataSet(DataTableName, dictionary);
-                if (ds.Tables[0].Rows.Count == 0)
+                bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
+                if (!exist)
                 {
                     MysqlConn.ExecuteDataInsert(DataTableName, slist);
                 }
@@ -92,7 +92,7 @@ namespace Zoro.Spider
             }
             catch (Exception e)
             {
-                Program.Log($"error occured when call invokescript with nep5contract ={Contract.ToString()}", Program.LogLevel.Error);
+                Program.Log($"error occured when call invokescript, nep5contract:{Contract.ToString()}, reason:{e.ToString()}", Program.LogLevel.Error);
                 throw e;
             }
         }
