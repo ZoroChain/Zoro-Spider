@@ -53,7 +53,7 @@ namespace Zoro.Spider
             //Dictionary<string, string> dictionary = new Dictionary<string, string>();
             //dictionary.Add("hash", jObject["hash"].ToString());
 
-            DateTime dt = DateTime.Now;
+            //DateTime dt = DateTime.Now;
 
             //bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
             //if (!exist) {
@@ -62,7 +62,7 @@ namespace Zoro.Spider
             
             uint blockTime = uint.Parse(result["time"].ToString());
 
-            Program.Log($"SaveBlock {ChainHash} {height}", Program.LogLevel.Debug);
+            Program.Log($"SaveBlock {ChainHash} {height}", Program.LogLevel.Warning);
             Program.Log(result.ToString(), Program.LogLevel.Debug);
 
             int numTx = 0;
@@ -72,9 +72,9 @@ namespace Zoro.Spider
                 numTx++;
             }
 
-            TimeSpan span = DateTime.Now - dt;
+            //TimeSpan span = DateTime.Now - dt;
 
-            Program.Log($"BlockSaved {ChainHash} height:{height} tx:{numTx} time:{span:hh\\:mm\\:ss\\.fff}", Program.LogLevel.Warning);
+            //Program.Log($"BlockSaved {ChainHash} height:{height} tx:{numTx} time:{span:hh\\:mm\\:ss\\.fff}", Program.LogLevel.Warning);
         }
     }
 }
