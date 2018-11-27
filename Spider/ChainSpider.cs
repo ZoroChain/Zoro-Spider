@@ -9,7 +9,6 @@ namespace Zoro.Spider
     class ChainSpider : IDisposable
     {
         private Task task;
-        private WebClient wc = new WebClient();
         private SaveBlock block;
 
         private UInt160 chainHash;
@@ -42,6 +41,7 @@ namespace Zoro.Spider
         {
             try
             {
+                WebClient wc = new WebClient();
                 var getcountUrl = $"{Settings.Default.RpcUrl}/?jsonrpc=2.0&id=1&method=getblockcount&params=['{chainHash}']";
                 var info = wc.DownloadString(getcountUrl);
                 var json = JObject.Parse(info);
@@ -65,8 +65,9 @@ namespace Zoro.Spider
         {
             try
             {
+                WebClient wc = new WebClient();
                 var getblockUrl = $"{Settings.Default.RpcUrl}/?jsonrpc=2.0&id=1&method=getblock&params=['{chainHash}',{height},1]";
-                var info = wc.DownloadString(getblockUrl);
+                var info =  wc.DownloadString(getblockUrl);
                 var json = JObject.Parse(info);
                 JToken result = json["result"];
 
@@ -95,7 +96,7 @@ namespace Zoro.Spider
                 while (currentHeight < blockCount)
                 {
                     currentHeight = GetBlock(currentHeight);
-                    Thread.Sleep(50);
+                    //Thread.Sleep(10);
                 }
 
                 Thread.Sleep(1000);

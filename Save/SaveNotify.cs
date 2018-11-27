@@ -11,7 +11,6 @@ namespace Zoro.Spider
 {
     class SaveNotify : SaveBase
     {
-        private WebClient wc = new WebClient();
         private SaveNEP5Asset nep5Asset;
         private SaveNEP5Transfer nep5Transfer;
 
@@ -20,7 +19,7 @@ namespace Zoro.Spider
         {
             InitDataTable(TableType.Notify);
 
-            nep5Asset = new SaveNEP5Asset(wc, chainHash);
+            nep5Asset = new SaveNEP5Asset(chainHash);
             nep5Transfer = new SaveNEP5Transfer(chainHash);
         }
 
@@ -30,14 +29,15 @@ namespace Zoro.Spider
             return true;
         }
 
-        public void Save(JToken jToken, uint blockHeight)
+        public async void Save(JToken jToken, uint blockHeight)
         {
             JToken result = null;
             JToken executions = null;
             try
             {
+                WebClient wc = new WebClient();
                 var getUrl = $"{Settings.Default.RpcUrl}/?jsonrpc=2.0&id=1&method=getapplicationlog&params=['{ChainHash}','{jToken["txid"]}']";
-                var info = wc.DownloadString(getUrl);
+                var info = await wc.DownloadStringTaskAsync(getUrl);
                 var json = JObject.Parse(info);
                 result = json["result"];
                 executions = result["executions"].First as JToken;
