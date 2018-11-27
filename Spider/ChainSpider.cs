@@ -55,7 +55,7 @@ namespace Zoro.Spider
             }
             catch (Exception e)
             {
-                Program.Log($"error occured when call getblockcount {chainHash}, reason:{e.ToString()}", Program.LogLevel.Error);
+                Program.Log($"error occured when call getblockcount {chainHash}, reason:{e.Message}", Program.LogLevel.Error);
             }
 
             return 0;
@@ -81,7 +81,7 @@ namespace Zoro.Spider
             }
             catch (Exception e)
             {
-                Program.Log($"error occured when call getblock {height} {chainHash}, reason:{e.ToString()}", Program.LogLevel.Error);
+                Program.Log($"error occured when call getblock {height} {chainHash}, reason:{e.Message}", Program.LogLevel.Error);
             }
 
             return height;

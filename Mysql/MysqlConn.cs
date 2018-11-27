@@ -88,7 +88,7 @@ namespace Zoro.Spider
                 }
                 catch (Exception e)
                 {
-                    Program.Log($"建表失败 {tableName}, reason:{e.ToString()}", Program.LogLevel.Fatal);
+                    Program.Log($"建表失败 {tableName}, reason:{e.Message}", Program.LogLevel.Fatal);
                 }
                 finally
                 {
@@ -124,7 +124,7 @@ namespace Zoro.Spider
             }
             catch (Exception e)
             {
-                Program.Log($"Error when execute select {tableName}, reason:{e.ToString()}", Program.LogLevel.Error);
+                Program.Log($"Error when execute select {tableName}, reason:{e.Message}", Program.LogLevel.Error);
                 throw e;
             }
             finally
@@ -166,7 +166,7 @@ namespace Zoro.Spider
             }
             catch (Exception e)
             {
-                Program.Log($"Error when execute select {tableName}, reason:{e.ToString()}", Program.LogLevel.Error);
+                Program.Log($"Error when execute select {tableName}, reason:{e.Message}", Program.LogLevel.Error);
                 throw e;
             }
             finally
@@ -201,7 +201,7 @@ namespace Zoro.Spider
             }
             catch (Exception e)
             {
-                Program.Log($"Error when execute insert with {tableName}, reason: {e.ToString()}", Program.LogLevel.Error);
+                Program.Log($"Error when execute insert with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
                 throw e;
             }
             finally
@@ -242,7 +242,7 @@ namespace Zoro.Spider
             }
             catch(Exception e)
             {
-                Program.Log($"Error when execute update with {tableName}, reason: {e.ToString()}", Program.LogLevel.Error);
+                Program.Log($"Error when execute update with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
                 throw e;
             }
             finally

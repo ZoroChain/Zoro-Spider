@@ -91,7 +91,7 @@ namespace Zoro.Spider
             }
             catch (Exception e)
             {
-                Program.Log($"error occured when call invokescript, chainhash:{ChainHash}, nep5contract:{Contract.ToString()}, reason:{e.ToString()}", Program.LogLevel.Error);
+                Program.Log($"error occured when call invokescript, chainhash:{ChainHash}, nep5contract:{Contract.ToString()}, reason:{e.Message}", Program.LogLevel.Error);
                 throw e;
             }
         }
