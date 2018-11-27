@@ -36,7 +36,6 @@ namespace Zoro.Spider
             MysqlConn.SaveAndUpdataAppChainState(DataTableName, slist);
 
             Program.Log($"SaveAppChain {jObject["hash"]} {jObject["name"]}", Program.LogLevel.Info);
-            Program.Log(slist.ToString(), Program.LogLevel.Debug);
         }
     }
 }

@@ -87,12 +87,11 @@ namespace Zoro.Spider
                     MysqlConn.ExecuteDataInsert(DataTableName, slist);
                 }
 
-                Program.Log($"SaveNEP5Asset {ChainHash} {Contract}", Program.LogLevel.Info);
-                Program.Log(slist.ToString(), Program.LogLevel.Debug);
+                Program.Log($"SaveNEP5Asset {ChainHash} {Contract}", Program.LogLevel.Info, ChainHash.ToString());
             }
             catch (Exception e)
             {
-                Program.Log($"error occured when call invokescript, nep5contract:{Contract.ToString()}, reason:{e.ToString()}", Program.LogLevel.Error);
+                Program.Log($"error occured when call invokescript, chainhash:{ChainHash}, nep5contract:{Contract.ToString()}, reason:{e.ToString()}", Program.LogLevel.Error);
                 throw e;
             }
         }

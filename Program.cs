@@ -169,16 +169,18 @@ namespace Zoro.Spider
             logLevel = lv;
         }
 
-        public static void Log(string message, LogLevel lv)
+        public static void Log(string message, LogLevel lv, string dir = null)
         {
             if (lv <= logLevel)
             {
                 DateTime now = DateTime.Now;
                 string line = $"[{now.TimeOfDay:hh\\:mm\\:ss\\.fff}] {message}";
                 Console.WriteLine(line);
-                string path = $"zoro-spider_{now:yyyy-MM-dd}.log";
-                lock(logLock)
+                string log_dictionary = dir != null ? $"Logs/{dir}" : $"Logs/default";
+                string path = Path.Combine(log_dictionary, $"{now:yyyy-MM-dd}.log");
+                lock (logLock)
                 {
+                    Directory.CreateDirectory(log_dictionary);
                     File.AppendAllLines(path, new[] { line });
                 }
             }

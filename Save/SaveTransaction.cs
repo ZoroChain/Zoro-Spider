@@ -71,8 +71,7 @@ namespace Zoro.Spider
                 MysqlConn.ExecuteDataInsert(DataTableName, slist);
             }
 
-            Program.Log($"SaveTransaction {ChainHash} {blockHeight}", Program.LogLevel.Info);
-            Program.Log(result.ToString(), Program.LogLevel.Debug);
+            Program.Log($"SaveTransaction {ChainHash} {blockHeight}", Program.LogLevel.Info, ChainHash.ToString());
 
             address.Save(result["vout"], blockHeight, blockTime);
 

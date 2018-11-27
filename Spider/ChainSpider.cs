@@ -96,7 +96,6 @@ namespace Zoro.Spider
                 while (currentHeight < blockCount)
                 {
                     currentHeight = GetBlock(currentHeight);
-                    //Thread.Sleep(10);
                 }
 
                 Thread.Sleep(1000);
