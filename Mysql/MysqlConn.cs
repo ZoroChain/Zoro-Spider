@@ -12,6 +12,7 @@ namespace Zoro.Spider
 
         public static bool Exist(string tableName)
         {
+            bool result = false;
             string cmdStr = $"select t.table_name from information_schema.TABLES t where t.TABLE_SCHEMA = '{dbname}' and t.TABLE_NAME = '{ tableName }' ";
             using (MySqlConnection conn = new MySqlConnection(conf))
             {
@@ -21,10 +22,11 @@ namespace Zoro.Spider
                 if (reader.Read())
                 {
                     string name = reader.GetString(0);
-                    return true;
+                    result = true;
                 }
+                conn.Close();
             }
-            return false;
+            return result;
         }
 
         public static void CreateTable(string type, string tableName)
@@ -88,100 +90,123 @@ namespace Zoro.Spider
                 {
                     Program.Log($"建表失败 {tableName}, reason:{e.ToString()}", Program.LogLevel.Fatal);
                 }
+                finally
+                {
+                    conn.Close();
+                }
             }
         }
 
         public static DataSet ExecuteDataSet(string tableName, Dictionary<string, string> where)
         {
+            MySqlConnection conn = new MySqlConnection(conf);
+
             try
             {
-                using (MySqlConnection conn = new MySqlConnection(conf))
+                conn.Open();
+                string select = "select * from " + tableName;
+                if (where.Count != 0)
                 {
-                    conn.Open();
-                    string select = "select * from " + tableName;
-                    if (where.Count != 0)
-                    {
-                        select += " where";
-                    }
-                    foreach (var dir in where)
-                    {
-                        select += " " + dir.Key + "='" + dir.Value + "'";
-                        select += " and";
-                    }
-                    if (where.Count > 0)
-                        select = select.Substring(0, select.Length - 4);
-                    MySqlDataAdapter adapter = new MySqlDataAdapter(select, conf);
-                    DataSet ds = new DataSet();
-                    adapter.Fill(ds);
-                    return ds;
+                    select += " where";
                 }
+                foreach (var dir in where)
+                {
+                    select += " " + dir.Key + "='" + dir.Value + "'";
+                    select += " and";
+                }
+                if (where.Count > 0)
+                    select = select.Substring(0, select.Length - 4);
+                MySqlDataAdapter adapter = new MySqlDataAdapter(select, conf);
+                DataSet ds = new DataSet();
+                adapter.Fill(ds);
+
+                return ds;
             }
             catch (Exception e)
             {
                 Program.Log($"Error when execute select {tableName}, reason:{e.ToString()}", Program.LogLevel.Error);
                 throw e;
+            }
+            finally
+            {
+                conn.Close();
             }
         }
 
         public static bool CheckExist(string tableName, Dictionary<string, string> where)
         {
+            MySqlConnection conn = new MySqlConnection(conf);
+
             try
             {
-                using (MySqlConnection conn = new MySqlConnection(conf))
-                {
-                    conn.Open();
-                    string select = "select id from " + tableName;
-                    if (where.Count != 0)
-                    {
-                        select += " where";
-                    }
-                    foreach (var dir in where)
-                    {
-                        select += " " + dir.Key + "='" + dir.Value + "'";
-                        select += " and";
-                    }
-                    if (where.Count > 0)
-                        select = select.Substring(0, select.Length - 4);
+                //DateTime dt = DateTime.Now;
 
-                    MySqlCommand cmd = new MySqlCommand(select, conn);
-                    MySqlDataReader reader = cmd.ExecuteReader();
-                    if (reader.Read())
-                    {
-                        return true;
-                    }
-                    return false;
+                conn.Open();
+                string select = "select id from " + tableName;
+                if (where.Count != 0)
+                {
+                    select += " where";
                 }
+                foreach (var dir in where)
+                {
+                    select += " " + dir.Key + "='" + dir.Value + "'";
+                    select += " and";
+                }
+                if (where.Count > 0)
+                    select = select.Substring(0, select.Length - 4);
+
+                MySqlCommand cmd = new MySqlCommand(select, conn);
+                MySqlDataReader reader = cmd.ExecuteReader();
+                bool result = reader.Read();
+
+                //TimeSpan span = DateTime.Now - dt;
+                //Program.Log($"Execute Select {tableName} time:{span:hh\\:mm\\:ss\\.fff}", Program.LogLevel.Warning);
+
+                return result;
             }
             catch (Exception e)
             {
                 Program.Log($"Error when execute select {tableName}, reason:{e.ToString()}", Program.LogLevel.Error);
                 throw e;
             }
+            finally
+            {
+                conn.Close();
+            }
         }
 
         public static int ExecuteDataInsert(string tableName, List<string> parameter)
         {
+            MySqlConnection conn = new MySqlConnection(conf);
+
             try
             {
-                using (MySqlConnection conn = new MySqlConnection(conf))
+                //DateTime dt = DateTime.Now;
+
+                conn.Open();
+                string mysql = $"insert into " + tableName + " values (null,";
+                foreach (string param in parameter)
                 {
-                    conn.Open();
-                    string mysql = $"insert into " + tableName + " values (null,";
-                    foreach (string param in parameter)
-                    {
-                        mysql += "'" + param + "',";
-                    }
-                    mysql = mysql.Substring(0, mysql.Length - 1);
-                    mysql += ");";
-                    MySqlCommand mc = new MySqlCommand(mysql, conn);
-                    int count = mc.ExecuteNonQuery();
-                    return count;
+                    mysql += "'" + param + "',";
                 }
+                mysql = mysql.Substring(0, mysql.Length - 1);
+                mysql += ");";
+                MySqlCommand mc = new MySqlCommand(mysql, conn);
+                int count = mc.ExecuteNonQuery();
+
+                //TimeSpan span = DateTime.Now - dt;
+                //Program.Log($"Execute Insert {tableName} time:{span:hh\\:mm\\:ss\\.fff}", Program.LogLevel.Warning);
+
+                return count;
             }
             catch (Exception e)
             {
                 Program.Log($"Error when execute insert with {tableName}, reason: {e.ToString()}", Program.LogLevel.Error);
                 throw e;
+            }
+            finally
+            {
+                conn.Close();
             }
         }
 
@@ -190,37 +215,39 @@ namespace Zoro.Spider
         /// </summary>
         public static int Update(string tableName, Dictionary<string, string> dirs, Dictionary<string, string> where)
         {
+            MySqlConnection conn = new MySqlConnection(conf);
+
             try
             {
-                using (MySqlConnection conn = new MySqlConnection(conf))
+                conn.Open();
+                string update = $"update " + tableName + " set ";
+                foreach (var dir in dirs)
                 {
-                    conn.Open();
-                    string update = $"update " + tableName + " set ";
-                    foreach (var dir in dirs)
-                    {
-                        update += dir.Key + "='" + dir.Value + "',";
-                    }
-                    update = update.Substring(0, update.Length - 1);
-                    if (where.Count != 0)
-                        update += " where";
-                    foreach (var dir in where)
-                    {
-                        update += " " + dir.Key + "='" + dir.Value + "'";
-                        update += " and";
-                    }
-                    if (where.Count != 0)
-                        update = update.Substring(0, update.Length - 4);
-                    update += ";";
-                    MySqlCommand command = new MySqlCommand(update, conn);
-                    int count = command.ExecuteNonQuery();
-                    conn.Close();
-                    return count;
+                    update += dir.Key + "='" + dir.Value + "',";
                 }
+                update = update.Substring(0, update.Length - 1);
+                if (where.Count != 0)
+                    update += " where";
+                foreach (var dir in where)
+                {
+                    update += " " + dir.Key + "='" + dir.Value + "'";
+                    update += " and";
+                }
+                if (where.Count != 0)
+                    update = update.Substring(0, update.Length - 4);
+                update += ";";
+                MySqlCommand command = new MySqlCommand(update, conn);
+                int count = command.ExecuteNonQuery();
+                return count;
             }
             catch(Exception e)
             {
                 Program.Log($"Error when execute update with {tableName}, reason: {e.ToString()}", Program.LogLevel.Error);
                 throw e;
+            }
+            finally
+            {
+                conn.Close();
             }
         }
 

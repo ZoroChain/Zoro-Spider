@@ -79,10 +79,10 @@ namespace Zoro.Spider
                 slist.Add(symbol);
                 slist.Add(decimals);
 
-                Dictionary<string, string> dictionary = new Dictionary<string, string>();
-                dictionary.Add("assetid", Contract.ToString());
-                bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
-                if (!exist)
+                //Dictionary<string, string> dictionary = new Dictionary<string, string>();
+                //dictionary.Add("assetid", Contract.ToString());
+                //bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
+                //if (!exist)
                 {
                     MysqlConn.ExecuteDataInsert(DataTableName, slist);
                 }

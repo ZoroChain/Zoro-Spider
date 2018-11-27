@@ -50,15 +50,15 @@ namespace Zoro.Spider
             slist.Add(jObject["script"].ToString());
             slist.Add(jObject["tx"].ToString());
 
-            Dictionary<string, string> dictionary = new Dictionary<string, string>();
-            dictionary.Add("hash", jObject["hash"].ToString());
+            //Dictionary<string, string> dictionary = new Dictionary<string, string>();
+            //dictionary.Add("hash", jObject["hash"].ToString());
 
             DateTime dt = DateTime.Now;
 
-            bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
-            if (!exist) {
+            //bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
+            //if (!exist) {
                 MysqlConn.ExecuteDataInsert(DataTableName, slist);
-            }
+            //}
             
             uint blockTime = uint.Parse(result["time"].ToString());
 

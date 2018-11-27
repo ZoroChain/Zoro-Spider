@@ -65,11 +65,11 @@ namespace Zoro.Spider
                 slist.Add(executions["notifications"].ToString());
                 slist.Add(blockHeight.ToString());
 
-                Dictionary<string, string> dictionary = new Dictionary<string, string>();
-                dictionary.Add("txid", jToken["txid"].ToString());
-                dictionary.Add("blockindex", blockHeight.ToString());
-                bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
-                if (!exist)
+                //Dictionary<string, string> dictionary = new Dictionary<string, string>();
+                //dictionary.Add("txid", jToken["txid"].ToString());
+                //dictionary.Add("blockindex", blockHeight.ToString());
+                //bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
+                //if (!exist)
                 {
                     MysqlConn.ExecuteDataInsert(DataTableName, slist);
                 }

@@ -44,11 +44,11 @@ namespace Zoro.Spider
                 slist.Add(result["useHeight"].ToString());
                 slist.Add(result["claimed"].ToString());
 
-                Dictionary<string, string> dictionary = new Dictionary<string, string>();
-                dictionary.Add("txid", result["txid"].ToString());
-                dictionary.Add("createHeight", blockHeight.ToString());
-                bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
-                if (!exist)
+                //Dictionary<string, string> dictionary = new Dictionary<string, string>();
+                //dictionary.Add("txid", result["txid"].ToString());
+                //dictionary.Add("createHeight", blockHeight.ToString());
+                //bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
+                //if (!exist)
                 {
                     MysqlConn.ExecuteDataInsert(DataTableName, slist);
                 }
