@@ -36,7 +36,7 @@ namespace Zoro.Spider
                 case TableType.Block:
                     createSql = "create table "+tableName+" (id bigint(20) primary key auto_increment, hash varchar(255), size varchar(255), version tinyint(3)," +
                 " previousblockhash varchar(255), merkleroot varchar(255)," +
-                " time int(11), indexx int(11), nonce varchar(255), nextconsensus varchar(255), script varchar(2048), tx longtext)";
+                " time int(11), indexx int(11), nonce varchar(255), nextconsensus varchar(255), script varchar(2048))";
                     break;
                 case TableType.Address:
                     createSql = "create table "+tableName+" (id int(11) primary key auto_increment, addr varchar(255)," +
@@ -74,6 +74,9 @@ namespace Zoro.Spider
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, version varchar(255), hash varchar(255), name varchar(255)," +
                 " owner varchar(255), timestamp varchar(255), seedlist varchar(2048), validators varchar(2048))";
                     break;
+                case TableType.Chainlistheight:
+                    createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, chainhash varchar(255), chainheight varchar(255))";
+                    break;
             }
             using (MySqlConnection conn = new MySqlConnection(conf))
             {
@@ -84,11 +87,65 @@ namespace Zoro.Spider
                     {
                         cmd.ExecuteNonQuery();
                     }
+                    
                     Program.Log("建表成功 " + tableName, Program.LogLevel.Info);
                 }
                 catch (Exception e)
                 {
                     Program.Log($"建表失败 {tableName}, reason:{e.Message}", Program.LogLevel.Fatal);
+                    throw e;
+                }
+                finally
+                {                   
+                    conn.Close();
+                    AlterTable(type, tableName);
+                }
+            }
+        }
+
+        public static void AlterTable(string type, string tableName) {
+            string alterSql = "";
+            switch (type)
+            {
+                case TableType.Block:
+                    alterSql = "alter table " + tableName + " add index index_name (indexx)";
+                    break;
+                case TableType.Address:
+                    alterSql = "alter table " + tableName + " add index index_name (addr)";
+                    break;
+                case TableType.Address_tx:
+                    alterSql = "alter table " + tableName + " add index index_name (addr)";
+                    break;
+                case TableType.Transaction:
+                    alterSql = "alter table " + tableName + " add index index_name (txid)";
+                    break;
+                case TableType.Notify:
+                    alterSql = "alter table " + tableName + " add index index_name (txid)";
+                    break;
+                case TableType.NEP5Transfer:
+                    alterSql = "alter table " + tableName + " add index index_name (txid)";
+                    break;
+                case TableType.UTXO:
+                    alterSql = "alter table " + tableName + " add index index_name (addr,used)";
+                    break;
+                default:
+                    return;
+            }
+            using (MySqlConnection conn = new MySqlConnection(conf))
+            {
+                conn.Open();
+                try
+                {
+                    using (MySqlCommand cmd = new MySqlCommand(alterSql, conn))
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                    Program.Log("插入索引成功 " + tableName, Program.LogLevel.Info);
+                }
+                catch (Exception e)
+                {
+                    Program.Log($"插入索引失败 {tableName}, reason:{e.Message}", Program.LogLevel.Fatal);
+                    throw e;
                 }
                 finally
                 {
@@ -199,6 +256,11 @@ namespace Zoro.Spider
 
                 return count;
             }
+            catch (MySqlException e) {
+                Program.Log($"Error when execute insert with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
+                conn.Close();
+                return ExecuteDataInsert(tableName, parameter);
+            }
             catch (Exception e)
             {
                 Program.Log($"Error when execute insert with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
@@ -251,36 +313,33 @@ namespace Zoro.Spider
             }
         }
 
-        public static uint getHeight(string chainHash) {
-            var dir = new Dictionary<string, string>();
-            dir.Add("chainhash", chainHash);
-            DataTable dt = ExecuteDataSet("chainlistheight", dir).Tables[0];
-            if (dt.Rows.Count == 0)
+        public static void Delete(string tableName, Dictionary<string, string> where) {
+            MySqlConnection conn = new MySqlConnection(conf);
+            try
             {
-                return 0;
+                conn.Open();
+                string delete = $"delete from " + tableName + "";
+                if (where.Count != 0)
+                    delete += " where";
+                foreach (var dir in where)
+                {
+                    delete += " " + dir.Key + "='" + dir.Value + "'";
+                    delete += " and";
+                }
+                if (where.Count != 0)
+                    delete = delete.Substring(0, delete.Length - 4);
+                delete += ";";
+                MySqlCommand command = new MySqlCommand(delete, conn);
+                int count = command.ExecuteNonQuery();
             }
-            else {
-                return uint.Parse(dt.Rows[0]["chainheight"].ToString());
-            }
-        }
-
-        public static void SaveAndUpdateHeight(string chainHash, string height)
-        {
-            var dir = new Dictionary<string, string>();
-            dir.Add("chainhash", chainHash);
-            DataTable dt = ExecuteDataSet("chainlistheight", dir).Tables[0];
-            if (dt.Rows.Count == 0)
+            catch (Exception e)
             {
-                var list = new List<string>();
-                list.Add(chainHash);
-                list.Add(height);
-                ExecuteDataInsert("chainlistheight", list);
+                Program.Log($"Error when execute update with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
+                throw e;
             }
-            else
+            finally
             {
-                var set = new Dictionary<string, string>();
-                set.Add("chainheight", height);
-                Update("chainlistheight", set, dir);
+                conn.Close();
             }
         }
 
@@ -334,5 +393,6 @@ namespace Zoro.Spider
         public const string UTXO = "utxo";
         public const string Hash_List = "hashlist";
         public const string Appchainstate = "appchainstate";
+        public const string Chainlistheight = "chainlistheight";
     }
 }

@@ -46,11 +46,7 @@ namespace Zoro.Spider
             slist.Add(result["issuer"].ToString());
             slist.Add(result["expiration"].ToString());
             slist.Add(result["frozen"].ToString());
-
-            //Dictionary<string, string> dictionary = new Dictionary<string, string>();
-            //dictionary.Add("id", result["id"].ToString());
-            //bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
-            //if (!exist)
+           
             {
                 MysqlConn.ExecuteDataInsert(DataTableName, slist);
             }

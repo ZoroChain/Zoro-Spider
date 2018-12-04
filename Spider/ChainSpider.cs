@@ -10,19 +10,24 @@ namespace Zoro.Spider
     {
         private Task task;
         private SaveBlock block;
+        private SaveChainListHeight listHeight;
 
         private UInt160 chainHash;
         private uint currentHeight = 0;
+
+        public static uint checkHeight = 0;
 
         public ChainSpider(UInt160 chainHash)
         {
             this.chainHash = chainHash;
             block = new SaveBlock(chainHash);
+            listHeight = new SaveChainListHeight(chainHash);
         }
 
         public void Start(int startHeight)
         {
-            this.currentHeight = startHeight >= 0 ? (uint)startHeight : MysqlConn.getHeight(chainHash.ToString());
+            this.currentHeight = startHeight >= 0 ? (uint)startHeight : listHeight.getHeight(chainHash.ToString());
+            checkHeight = currentHeight;
 
             Program.Log($"Starting chain spider {chainHash} {currentHeight}", Program.LogLevel.Warning);
 
@@ -56,6 +61,7 @@ namespace Zoro.Spider
             catch (Exception e)
             {
                 Program.Log($"error occured when call getblockcount {chainHash}, reason:{e.Message}", Program.LogLevel.Error);
+                return GetBlockCount();
             }
 
             return 0;
@@ -75,13 +81,15 @@ namespace Zoro.Spider
                 {
                     block.Save(wc, result, height);
                     //每获取一个块做一次高度记录，方便下次启动时做开始高度
-                    MysqlConn.SaveAndUpdateHeight(chainHash.ToString(), height.ToString());
+                    listHeight.Save(chainHash.ToString(), height.ToString());
                     return height + 1;
                 }
             }
             catch (Exception e)
             {
                 Program.Log($"error occured when call getblock {height} {chainHash}, reason:{e.Message}", Program.LogLevel.Error);
+                //throw e;
+                return GetBlock(height);
             }
 
             return height;

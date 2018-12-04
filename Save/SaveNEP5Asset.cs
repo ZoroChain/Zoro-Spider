@@ -83,6 +83,7 @@ namespace Zoro.Spider
                 //dictionary.Add("assetid", Contract.ToString());
                 //bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
                 //if (!exist)
+                //这里有个bug，我们的bcp会因为转账而增长          
                 {
                     MysqlConn.ExecuteDataInsert(DataTableName, slist);
                 }

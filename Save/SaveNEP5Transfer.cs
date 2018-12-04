@@ -34,6 +34,13 @@ namespace Zoro.Spider
             //dictionary.Add("blockindex", jToken["blockindex"].ToString());
             //bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
             //if (!exist)
+            if (ChainSpider.checkHeight == int.Parse(jToken["blockindex"].ToString()))
+            {
+                Dictionary<string, string> where = new Dictionary<string, string>();
+                where.Add("txid", jToken["txid"].ToString());
+                where.Add("blockindex", jToken["blockindex"].ToString());
+                MysqlConn.Delete(DataTableName, where);
+            }
             {
                 MysqlConn.ExecuteDataInsert(DataTableName, slist);
             }

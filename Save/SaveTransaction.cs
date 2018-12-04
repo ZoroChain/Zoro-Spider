@@ -67,6 +67,13 @@ namespace Zoro.Spider
             //dictionary.Add("blockheight", blockHeight.ToString());
             //bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
             //if (!exist)
+            if (ChainSpider.checkHeight == int.Parse(blockHeight.ToString()))
+            {
+                Dictionary<string, string> where = new Dictionary<string, string>();
+                where.Add("txid", jObject["txid"].ToString());
+                where.Add("blockheight", blockHeight.ToString());
+                MysqlConn.Delete(DataTableName, where);
+            }
             {
                 MysqlConn.ExecuteDataInsert(DataTableName, slist);
             }
@@ -76,15 +83,9 @@ namespace Zoro.Spider
             address.Save(result["vout"], blockHeight, blockTime);
 
             utxo.Save(result, blockHeight);
+            
+            addressTrans.Save(result, blockHeight, blockTime);
 
-            var addressTransactionPath = "addressTransaction" + Path.DirectorySeparatorChar + result["txid"] + ".txt";
-            addressTrans.Save(result, addressTransactionPath, blockHeight, blockTime);
-
-            //if (result["type"].ToString() == "RegisterTransaction")
-            //{
-            //    var assetPath = "asset" + Path.DirectorySeparatorChar + result["txid"] + ".txt";
-            //    asset.Save(jObject, assetPath);
-            //}
             if (result["type"].ToString() == "InvocationTransaction")
             {
                 notify.Save(jObject, blockHeight);

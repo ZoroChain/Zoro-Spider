@@ -42,11 +42,17 @@ namespace Zoro.Spider
                 result = json["result"];
                 executions = result["executions"].First as JToken;
             }
+            catch (WebException e)
+            {
+                Program.Log($"error occured when call getapplicationlog, chain:{ChainHash} height:{blockHeight}, reason:{e.Message}", Program.LogLevel.Error);
+                //throw e;
+            }
             catch (Exception e)
             {
                 Program.Log($"error occured when call getapplicationlog, chain:{ChainHash} height:{blockHeight}, reason:{e.Message}", Program.LogLevel.Error);
                 throw e;
             }
+            
             if (result != null && executions != null)
             {
                 //JObject jObject = new JObject();
@@ -70,6 +76,13 @@ namespace Zoro.Spider
                 //dictionary.Add("blockindex", blockHeight.ToString());
                 //bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
                 //if (!exist)
+                if (ChainSpider.checkHeight == int.Parse(blockHeight.ToString()))
+                {
+                    Dictionary<string, string> where = new Dictionary<string, string>();
+                    where.Add("txid", jToken["txid"].ToString());
+                    where.Add("blockindex", blockHeight.ToString());
+                    MysqlConn.Delete(DataTableName, where);
+                }
                 {
                     MysqlConn.ExecuteDataInsert(DataTableName, slist);
                 }

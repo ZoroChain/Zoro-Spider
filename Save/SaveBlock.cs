@@ -48,15 +48,13 @@ namespace Zoro.Spider
             slist.Add(jObject["nonce"].ToString());
             slist.Add(jObject["nextconsensus"].ToString());
             slist.Add(jObject["script"].ToString());
-            slist.Add(jObject["tx"].ToString());
 
-            //Dictionary<string, string> dictionary = new Dictionary<string, string>();
-            //dictionary.Add("hash", jObject["hash"].ToString());
-
-            //bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
-            //if (!exist) {
-                MysqlConn.ExecuteDataInsert(DataTableName, slist);
-            //}
+            if (ChainSpider.checkHeight == int.Parse(jObject["index"].ToString())) {
+                Dictionary<string, string> where = new Dictionary<string, string>();
+                where.Add("indexx", jObject["index"].ToString());
+                MysqlConn.Delete(DataTableName, where);
+            }
+            MysqlConn.ExecuteDataInsert(DataTableName, slist);
             
             uint blockTime = uint.Parse(result["time"].ToString());
 

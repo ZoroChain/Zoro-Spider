@@ -18,7 +18,7 @@ namespace Zoro.Spider
             return true;
         }
 
-        public void Save(JToken jObject, string path, uint blockHeight, uint blockTime)
+        public void Save(JToken jObject, uint blockHeight, uint blockTime)
         {
             //JObject result = new JObject();
             //result["txid"] = jObject["txid"];
@@ -38,6 +38,14 @@ namespace Zoro.Spider
                 //dictionary.Add("blockindex", blockHeight.ToString());
                 //bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
                 //if (!exist)
+                if (ChainSpider.checkHeight == int.Parse(blockHeight.ToString()))
+                {
+                    Dictionary<string, string> where = new Dictionary<string, string>();
+                    where.Add("addr", vout["address"].ToString());
+                    where.Add("blockindex", blockHeight.ToString());
+                    where.Add("txid", jObject["txid"].ToString());
+                    MysqlConn.Delete(DataTableName, where);
+                }
                 {
                     MysqlConn.ExecuteDataInsert(DataTableName, slist);
                 }

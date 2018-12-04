@@ -48,7 +48,14 @@ namespace Zoro.Spider
                 //dictionary.Add("txid", result["txid"].ToString());
                 //dictionary.Add("createHeight", blockHeight.ToString());
                 //bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
-                //if (!exist)
+                //if (!exist)  
+                if (ChainSpider.checkHeight == int.Parse(result["createHeight"].ToString()))
+                {
+                    Dictionary<string, string> where = new Dictionary<string, string>();
+                    where.Add("addr", result["addr"].ToString());
+                    where.Add("createHeight", result["createHeight"].ToString());
+                    MysqlConn.Delete(DataTableName, where);
+                }
                 {
                     MysqlConn.ExecuteDataInsert(DataTableName, slist);
                 }
