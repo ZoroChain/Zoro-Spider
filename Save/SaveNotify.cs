@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Globalization;
 using Newtonsoft.Json.Linq;
+using System.Threading.Tasks;
 
 namespace Zoro.Spider
 {
@@ -29,6 +30,23 @@ namespace Zoro.Spider
             return true;
         }
 
+        public async Task<JToken> GetApplicationlog(WebClient wc, Zoro.UInt160 ChainHash, string txid, uint blockHeight) {
+            try
+            {
+                var getUrl = $"{Settings.Default.RpcUrl}/?jsonrpc=2.0&id=1&method=getapplicationlog&params=['{ChainHash}','{txid}']";
+                var info = await wc.DownloadStringTaskAsync(getUrl);
+                var json = JObject.Parse(info);
+                var result = json["result"];
+                return result;
+            }
+            catch (WebException e)
+            {
+                Program.Log($"error occured when call getapplicationlog, chain:{ChainHash} height:{blockHeight}, reason:{e.Message}", Program.LogLevel.Error);
+                //throw e;
+                return await GetApplicationlog(wc, ChainHash, txid, blockHeight);
+            }
+        }
+
         public async void Save(JToken jToken, uint blockHeight)
         {
             JToken result = null;
@@ -36,17 +54,9 @@ namespace Zoro.Spider
             try
             {
                 WebClient wc = new WebClient();
-                var getUrl = $"{Settings.Default.RpcUrl}/?jsonrpc=2.0&id=1&method=getapplicationlog&params=['{ChainHash}','{jToken["txid"]}']";
-                var info = await wc.DownloadStringTaskAsync(getUrl);
-                var json = JObject.Parse(info);
-                result = json["result"];
+                result = await GetApplicationlog(wc, ChainHash, jToken["txid"].ToString(), blockHeight);
                 executions = result["executions"].First as JToken;
-            }
-            catch (WebException e)
-            {
-                Program.Log($"error occured when call getapplicationlog, chain:{ChainHash} height:{blockHeight}, reason:{e.Message}", Program.LogLevel.Error);
-                //throw e;
-            }
+            }           
             catch (Exception e)
             {
                 Program.Log($"error occured when call getapplicationlog, chain:{ChainHash} height:{blockHeight}, reason:{e.Message}", Program.LogLevel.Error);
