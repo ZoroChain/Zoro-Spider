@@ -55,14 +55,15 @@ namespace Zoro.Spider
             {
                 WebClient wc = new WebClient();
                 result = await GetApplicationlog(wc, ChainHash, jToken["txid"].ToString(), blockHeight);
+                if (result != null)
                 executions = result["executions"].First as JToken;
-            }           
+            }
             catch (Exception e)
             {
                 Program.Log($"error occured when call getapplicationlog, chain:{ChainHash} height:{blockHeight}, reason:{e.Message}", Program.LogLevel.Error);
                 throw e;
             }
-            
+
             if (result != null && executions != null)
             {
                 //JObject jObject = new JObject();

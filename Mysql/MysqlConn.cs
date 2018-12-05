@@ -36,7 +36,7 @@ namespace Zoro.Spider
                 case TableType.Block:
                     createSql = "create table "+tableName+" (id bigint(20) primary key auto_increment, hash varchar(255), size varchar(255), version tinyint(3)," +
                 " previousblockhash varchar(255), merkleroot varchar(255)," +
-                " time int(11), indexx int(11), nonce varchar(255), nextconsensus varchar(255), script varchar(2048))";
+                " time int(11), indexx int(11), nonce varchar(255), nextconsensus varchar(255), script varchar(2048), tx longtext)";
                     break;
                 case TableType.Address:
                     createSql = "create table "+tableName+" (id int(11) primary key auto_increment, addr varchar(255)," +

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Data;
 using Newtonsoft.Json.Linq;
+using System.Threading;
 
 namespace Zoro.Spider
 {
@@ -89,6 +90,7 @@ namespace Zoro.Spider
             if (result["type"].ToString() == "InvocationTransaction")
             {
                 notify.Save(jObject, blockHeight);
+                Thread.Sleep(100);
             }
         }
     }
