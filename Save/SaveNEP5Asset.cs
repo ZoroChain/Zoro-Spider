@@ -67,7 +67,8 @@ namespace Zoro.Spider
                 IO.Json.JObject jsonResult = jObject["result"];
                 IO.Json.JArray jStack = jsonResult["stack"] as IO.Json.JArray;
 
-                string totalSupply = BigInteger.Parse(jStack[0]["value"].AsString(), NumberStyles.AllowHexSpecifier).ToString();
+                
+                string totalSupply = new BigInteger(Helper.HexString2Bytes(jStack[0]["value"].AsString())).ToString();
                 string name = Encoding.UTF8.GetString(Helper.HexString2Bytes(jStack[1]["value"].AsString()));
                 string symbol = Encoding.UTF8.GetString(Helper.HexString2Bytes(jStack[2]["value"].AsString()));
                 string decimals = BigInteger.Parse(jStack[3]["value"].AsString()).ToString();

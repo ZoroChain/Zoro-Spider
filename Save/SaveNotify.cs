@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Globalization;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
+using Zoro.Wallets;
 
 namespace Zoro.Spider
 {
@@ -122,9 +123,15 @@ namespace Zoro.Spider
                             tx["txid"] = jToken["txid"].ToString();
                             tx["n"] = 0;
                             tx["asset"] = contract;
-                            tx["from"] = values[1]["value"].ToString();
-                            tx["to"] = values[2]["value"].ToString();
-                            tx["value"] = BigInteger.Parse(values[3]["value"].ToString(), NumberStyles.AllowHexSpecifier).ToString();
+                            tx["from"] = UInt160.Parse(values[1]["value"].ToString()).ToAddress();
+                            tx["to"] = UInt160.Parse(values[2]["value"].ToString()).ToAddress();
+                            if (values[3]["type"].ToString() == "ByteArray")
+                            {
+                                tx["value"] = new BigInteger(Helper.HexString2Bytes(values[3]["value"].ToString())).ToString();
+                            }
+                            else {
+                                tx["value"] = BigInteger.Parse(values[3]["value"].ToString(), NumberStyles.AllowHexSpecifier).ToString();
+                            }                          
 
                             nep5Transfer.Save(tx);
                         }
