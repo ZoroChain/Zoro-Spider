@@ -124,7 +124,14 @@ namespace Zoro.Spider
                             tx["txid"] = jToken["txid"].ToString();
                             tx["n"] = 0;
                             tx["asset"] = contract;
-                            tx["from"] = UInt160.Parse(values[1]["value"].ToString()).ToAddress();
+                            if (values[1]["value"].ToString() == "")
+                            {
+                                tx["from"] = "";
+                            }
+                            else {
+                                tx["from"] = UInt160.Parse(values[1]["value"].ToString()).ToAddress();
+                            }
+                            
                             tx["to"] = UInt160.Parse(values[2]["value"].ToString()).ToAddress();
                             if (values[3]["type"].ToString() == "ByteArray")
                             {

@@ -4,6 +4,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Zoro.IO.Json;
+using Zoro.Cryptography;
 
 namespace Zoro.Spider
 {
@@ -29,6 +30,14 @@ namespace Zoro.Spider
                 outd[i] = byte.Parse(str.Substring(i * 2, 2), System.Globalization.NumberStyles.HexNumber);
             }
             return outd;
+        }
+
+        public static string ToAddress(this UInt160 scriptHash)
+        {
+            byte[] data = new byte[21];
+            data[0] = 23;
+            Buffer.BlockCopy(scriptHash.ToArray(), 0, data, 1, 20);
+            return data.Base58CheckEncode();
         }
     }
 }
