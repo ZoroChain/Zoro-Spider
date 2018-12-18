@@ -34,16 +34,10 @@ namespace Zoro.Spider
             }
             else
             {
-                JObject result = new JObject();
-                result["addr"] = jObject["address"];
-                result["firstuse"] = blockHeight;
-                result["lastuse"] = blockHeight;
-                result["txcount"] = 1;
-
                 List<string> slist = new List<string>();
                 slist.Add(jObject["address"].ToString());
-                slist.Add(blockHeight.ToString());
-                slist.Add(blockHeight.ToString());
+                slist.Add(blockTime.ToString());
+                slist.Add(blockTime.ToString());
                 slist.Add("1");
                 MysqlConn.ExecuteDataInsert(DataTableName, slist);
             }
