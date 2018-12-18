@@ -19,40 +19,25 @@ namespace Zoro.Spider
         }
 
         public void Save(JToken jObject, uint blockHeight, uint blockTime)
-        {
-            //JObject result = new JObject();
-            //result["txid"] = jObject["txid"];
-            //result["blockindex"] = Helper.blockHeight;
-            //result["blocktime"] = Helper.blockTime;
+        {                      
+            List<string> slist = new List<string>();
+            slist.Add(jObject["address"].ToString());
+            slist.Add(jObject["txid"].ToString());
+            slist.Add(blockHeight.ToString());
+            slist.Add(blockTime.ToString());
 
-            foreach (JObject vout in jObject["vout"])
+                
+            if (ChainSpider.checkHeight == int.Parse(blockHeight.ToString()))
             {
-                List<string> slist = new List<string>();
-                slist.Add(vout["address"].ToString());
-                slist.Add(jObject["txid"].ToString());
-                slist.Add(blockHeight.ToString());
-                slist.Add(blockTime.ToString());
-
-                //Dictionary<string, string> dictionary = new Dictionary<string, string>();
-                //dictionary.Add("txid", jObject["txid"].ToString());
-                //dictionary.Add("blockindex", blockHeight.ToString());
-                //bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
-                //if (!exist)
-                if (ChainSpider.checkHeight == int.Parse(blockHeight.ToString()))
-                {
-                    Dictionary<string, string> where = new Dictionary<string, string>();
-                    where.Add("addr", vout["address"].ToString());
-                    where.Add("blockindex", blockHeight.ToString());
-                    where.Add("txid", jObject["txid"].ToString());
-                    MysqlConn.Delete(DataTableName, where);
-                }
-                {
-                    MysqlConn.ExecuteDataInsert(DataTableName, slist);
-                }
+                Dictionary<string, string> where = new Dictionary<string, string>();
+                where.Add("addr", jObject["address"].ToString());
+                where.Add("blockindex", blockHeight.ToString());
+                where.Add("txid", jObject["txid"].ToString());
+                MysqlConn.Delete(DataTableName, where);
             }
-
-            //File.Delete(path);
-            //File.WriteAllText(path, result.ToString(), Encoding.UTF8);
+            {
+                MysqlConn.ExecuteDataInsert(DataTableName, slist);
+            }
         }
     }
 }

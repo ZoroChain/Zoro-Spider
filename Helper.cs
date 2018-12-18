@@ -38,6 +38,6 @@ namespace Zoro.Spider
             data[0] = 23;
             Buffer.BlockCopy(scriptHash.ToArray(), 0, data, 1, 20);
             return data.Base58CheckEncode();
-        }
+        }      
     }
 }

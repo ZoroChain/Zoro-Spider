@@ -10,8 +10,6 @@ namespace Zoro.Spider
     class SaveTransaction : SaveBase
     {
         private SaveUTXO utxo;
-        private SaveAddress address;
-        private SaveAddressTransaction addressTrans;
         private SaveAsset asset;
         private SaveNotify notify;
 
@@ -21,8 +19,6 @@ namespace Zoro.Spider
             InitDataTable(TableType.Transaction);
 
             utxo = new SaveUTXO(chainHash);
-            address = new SaveAddress(chainHash);
-            addressTrans = new SaveAddressTransaction(chainHash);
             asset = new SaveAsset(chainHash);
             notify = new SaveNotify(chainHash);
         }
@@ -55,8 +51,6 @@ namespace Zoro.Spider
             slist.Add(result["type"].ToString());
             slist.Add(result["version"].ToString());
             slist.Add(result["attributes"].ToString());
-            slist.Add(result["vin"].ToString());
-            slist.Add(result["vout"].ToString());
             slist.Add(result["sys_fee"].ToString());
             slist.Add(result["net_fee"].ToString());
             slist.Add(result["scripts"].ToString());
@@ -79,17 +73,13 @@ namespace Zoro.Spider
                 MysqlConn.ExecuteDataInsert(DataTableName, slist);
             }
 
-            Program.Log($"SaveTransaction {ChainHash} {blockHeight}", Program.LogLevel.Info, ChainHash.ToString());
+            Program.Log($"SaveTransaction {ChainHash} {blockHeight}", Program.LogLevel.Info, ChainHash.ToString());           
 
-            address.Save(result["vout"], blockHeight, blockTime);
-
-            utxo.Save(result, blockHeight);
-            
-            addressTrans.Save(result, blockHeight, blockTime);
+            utxo.Save(result, blockHeight);                      
 
             if (result["type"].ToString() == "InvocationTransaction")
             {
-                notify.Save(jObject, blockHeight);
+                notify.Save(jObject, blockHeight, blockTime);
                 Thread.Sleep(100);
             }
         }

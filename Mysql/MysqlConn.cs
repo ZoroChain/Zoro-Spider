@@ -48,7 +48,7 @@ namespace Zoro.Spider
                     break;
                 case TableType.Transaction:
                     createSql = "create table "+tableName+" (id int(11) primary key auto_increment, txid varchar(255)," +
-                " size int(11), type varchar(45), version tinyint(3), attributes varchar(2048), vin varchar(2048), vout varchar(2048)," +
+                " size int(11), type varchar(45), version tinyint(3), attributes varchar(2048)," +
                 " sys_fee int(11), net_fee int(11), scripts varchar(2048), nonce varchar(255), blockheight varchar(45))";
                     break;
                 case TableType.Notify:
@@ -56,8 +56,8 @@ namespace Zoro.Spider
                 " stack varchar(2048), notifications varchar(2048), blockindex int(11))";
                     break;
                 case TableType.NEP5Asset:                    
-                    createSql = "create table " + tableName + " (id int(11) primary key auto_increment, assetid varchar(45), totalsupply varchar(45)," +
-                " name varchar(45), symbol varchar(45), decimals varchar(45))";
+                    createSql = "create table " + tableName + " (id int(11) primary key auto_increment, assetid varchar(150), totalsupply varchar(45)," +
+                " name varchar(150), symbol varchar(150), decimals varchar(45))";
                     break;
                 case TableType.NEP5Transfer:
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, blockindex int(11), txid varchar(255)," +

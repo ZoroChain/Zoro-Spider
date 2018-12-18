@@ -20,6 +20,9 @@ namespace Zoro.Spider
 
         public void Save(JToken jObject, uint blockHeight)
         {
+            if (null == jObject["vout"]) {
+                return;
+            }
             foreach (JObject vout in jObject["vout"])
             {
                 JObject result = new JObject();
