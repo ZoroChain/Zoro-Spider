@@ -80,7 +80,7 @@ namespace Zoro.Spider
             if (result["type"].ToString() == "InvocationTransaction")
             {
                 notify.Save(jObject, blockHeight, blockTime);
-                Thread.Sleep(100);
+                Thread.Sleep(50);
             }
         }
     }
