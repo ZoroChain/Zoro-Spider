@@ -14,6 +14,7 @@ namespace Zoro.Spider
     class SaveNotify : SaveBase
     {
         private SaveAddress address;
+        private SaveAddressAsset addressAsset;
         private SaveAddressTransaction address_tx;
         private SaveNEP5Asset nep5Asset;
         private SaveNEP5Transfer nep5Transfer;
@@ -24,6 +25,7 @@ namespace Zoro.Spider
             InitDataTable(TableType.Notify);
 
             address = new SaveAddress(chainHash);
+            addressAsset = new SaveAddressAsset(chainHash);
             address_tx = new SaveAddressTransaction(chainHash);
             nep5Asset = new SaveNEP5Asset(chainHash);
             nep5Transfer = new SaveNEP5Transfer(chainHash);
@@ -143,12 +145,12 @@ namespace Zoro.Spider
                             }
                             else {
                                 tx["value"] = BigInteger.Parse(values[3]["value"].ToString(), NumberStyles.AllowHexSpecifier).ToString();
-                            }
-
+                            }                           
                             JObject j = new JObject();
                             j["address"] = tx["to"].ToString();
                             j["txid"] = tx["txid"].ToString();
                             address.Save(j, blockHeight, blockTime);
+                            addressAsset.Save(tx["to"].ToString(), contract);
                             address_tx.Save(j, blockHeight, blockTime);
                             nep5Transfer.Save(tx);
                         }

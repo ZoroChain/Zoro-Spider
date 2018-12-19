@@ -77,6 +77,9 @@ namespace Zoro.Spider
                 case TableType.Chainlistheight:
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, chainhash varchar(255), chainheight varchar(255))";
                     break;
+                case TableType.Address_Asset:
+                    createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, addr varchar(255), asset varchar(255))";
+                    break;
             }
             using (MySqlConnection conn = new MySqlConnection(conf))
             {
@@ -127,6 +130,9 @@ namespace Zoro.Spider
                     break;
                 case TableType.UTXO:
                     alterSql = "alter table " + tableName + " add index index_name (addr,used)";
+                    break;
+                case TableType.Address_Asset:
+                    alterSql = "alter table " + tableName + " add index index_name (addr,asset)";
                     break;
                 default:
                     return;
@@ -394,5 +400,6 @@ namespace Zoro.Spider
         public const string Hash_List = "hashlist";
         public const string Appchainstate = "appchainstate";
         public const string Chainlistheight = "chainlistheight";
+        public const string Address_Asset = "address_asset";
     }
 }
