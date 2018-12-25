@@ -54,7 +54,7 @@ namespace Zoro.Spider
             }
         }
 
-        public async void Save(JToken jToken, uint blockHeight, uint blockTime)
+        public async void Save(JToken jToken, uint blockHeight, uint blockTime, string script)
         {
             JToken result = null;
             JToken executions = null;
@@ -122,7 +122,7 @@ namespace Zoro.Spider
                         {
                             JObject nep5 = new JObject();
                             nep5["assetid"] = contract;
-                            nep5Asset.Save(nep5);
+                            nep5Asset.Save(nep5, script);
 
                             //存储Nep5Transfer内容
                             JObject tx = new JObject();
