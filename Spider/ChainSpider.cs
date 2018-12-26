@@ -47,6 +47,7 @@ namespace Zoro.Spider
             try
             {
                 WebClient wc = new WebClient();
+                wc.Proxy = null;
                 var getcountUrl = $"{Settings.Default.RpcUrl}/?jsonrpc=2.0&id=1&method=getblockcount&params=['{chainHash}']";
                 var info = wc.DownloadString(getcountUrl);
                 var json = JObject.Parse(info);
@@ -72,6 +73,7 @@ namespace Zoro.Spider
             try
             {
                 WebClient wc = new WebClient();
+                wc.Proxy = null;
                 var getblockUrl = $"{Settings.Default.RpcUrl}/?jsonrpc=2.0&id=1&method=getblock&params=['{chainHash}',{height},1]";
                 var info =  wc.DownloadString(getblockUrl);
                 var json = JObject.Parse(info);

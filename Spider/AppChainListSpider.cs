@@ -33,6 +33,7 @@ namespace Zoro.Spider
         {
             try
             {
+                wc.Proxy = null;
                 var gethashlistUrl = $"{Settings.Default.RpcUrl}/?jsonrpc=2.0&id=1&method=getappchainhashlist&params=[]";
                 var info = wc.DownloadString(gethashlistUrl);
                 var json = JObject.Parse(info);

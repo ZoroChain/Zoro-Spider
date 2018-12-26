@@ -61,6 +61,7 @@ namespace Zoro.Spider
             try
             {
                 WebClient wc = new WebClient();
+                wc.Proxy = null;
                 result = await GetApplicationlog(wc, ChainHash, jToken["txid"].ToString(), blockHeight);
                 if (result != null)
                 executions = result["executions"].First as JToken;

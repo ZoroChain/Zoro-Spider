@@ -58,6 +58,9 @@ namespace Zoro.Spider
 
         static void Main(string[] args)
         {
+            //C#为了使用并发
+            System.Net.ServicePointManager.DefaultConnectionLimit = 512;
+
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             ProjectInfo.head();

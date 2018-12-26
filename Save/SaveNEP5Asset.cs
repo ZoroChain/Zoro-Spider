@@ -68,6 +68,7 @@ namespace Zoro.Spider
 
                 using (WebClient wc = new WebClient())
                 {
+                    wc.Proxy = null;
                     var url = $"{Settings.Default.RpcUrl}/?jsonrpc=2.0&id=1&method=invokescript&params=['{ChainHash}','{script}']";
                     var result = await wc.DownloadStringTaskAsync(url);
                     jObject = IO.Json.JObject.Parse(result);
@@ -120,6 +121,7 @@ namespace Zoro.Spider
 
                 using (WebClient wc = new WebClient())
                 {
+                    wc.Proxy = null;
                     var url = $"{Settings.Default.RpcUrl}/?jsonrpc=2.0&id=1&method=invokescript&params=['{ChainHash}','{script}']";
                     var result = await wc.DownloadStringTaskAsync(url);
                     jObject = IO.Json.JObject.Parse(result);
@@ -171,6 +173,7 @@ namespace Zoro.Spider
 
                 using (WebClient wc = new WebClient())
                 {
+                    wc.Proxy = null;
                     var url = $"{Settings.Default.RpcUrl}/?jsonrpc=2.0&id=1&method=invokescript&params=['{ChainHash}','{script}']";
                     var result = await wc.DownloadStringTaskAsync(url);
                     jObject = IO.Json.JObject.Parse(result);
