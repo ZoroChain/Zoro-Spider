@@ -40,7 +40,6 @@ namespace Zoro.Spider
             result["vin"] = jObject["vin"];
             result["vout"] = jObject["vout"];
             result["sys_fee"] = jObject["sys_fee"];
-            result["net_fee"] = jObject["net_fee"];
             result["scripts"] = jObject["scripts"];
             result["nonce"] = jObject["nonce"];
             result["blockindex"] = blockHeight;
@@ -52,7 +51,6 @@ namespace Zoro.Spider
             slist.Add(result["version"].ToString());
             slist.Add(result["attributes"].ToString());
             slist.Add(result["sys_fee"].ToString());
-            slist.Add(result["net_fee"].ToString());
             slist.Add(result["scripts"].ToString());
             slist.Add(result["nonce"].ToString());
             slist.Add(blockHeight.ToString());

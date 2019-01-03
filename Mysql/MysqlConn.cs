@@ -49,7 +49,7 @@ namespace Zoro.Spider
                 case TableType.Transaction:
                     createSql = "create table "+tableName+" (id int(11) primary key auto_increment, txid varchar(255)," +
                 " size int(11), type varchar(45), version tinyint(3), attributes varchar(2048)," +
-                " sys_fee int(11), net_fee int(11), scripts varchar(2048), nonce varchar(255), blockheight varchar(45))";
+                " sys_fee int(11), scripts varchar(2048), nonce varchar(255), blockheight varchar(45))";
                     break;
                 case TableType.Notify:
                     createSql = "create table "+tableName+" (id bigint(20) primary key auto_increment, txid varchar(255), vmstate varchar(255), gas_consumed varchar(255)," +
