@@ -88,7 +88,7 @@ namespace Zoro.Spider
                 slist.Add(executions["vmstate"].ToString());
                 slist.Add(executions["gas_consumed"].ToString());
                 slist.Add(executions["stack"].ToString());
-                slist.Add(executions["notifications"].ToString());
+                slist.Add(executions["notifications"].ToString().Replace(@"[/n/r]", ""));
                 slist.Add(blockHeight.ToString());
 
                 //Dictionary<string, string> dictionary = new Dictionary<string, string>();
