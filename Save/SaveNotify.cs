@@ -8,6 +8,7 @@ using System.Globalization;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 using Zoro.Wallets;
+using System.Linq;
 
 namespace Zoro.Spider
 {

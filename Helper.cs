@@ -41,7 +41,7 @@ namespace Zoro.Spider
         {
             byte[] data = new byte[21];
             data[0] = 23;
-            Buffer.BlockCopy(scriptHash.ToArray(), 0, data, 1, 20);
+            Buffer.BlockCopy(scriptHash.ToArray().Reverse<byte>().ToArray<byte>(), 0, data, 1, 20);
             return data.Base58CheckEncode();
         }
 
