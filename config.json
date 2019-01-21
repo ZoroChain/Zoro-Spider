@@ -8,7 +8,7 @@
       "sslmode": "None",
       "Pooling": "True",
       "MinimumPoolSize": "3",
-      "maximumpoolsize": "13",
+      "maximumpoolsize": "30",
       "ConnectionLifeTime": "300",
       "Connection Timeout": "30",
       "Allow User Variables": "True"

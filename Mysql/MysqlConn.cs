@@ -78,7 +78,7 @@ namespace Zoro.Spider
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, chainhash varchar(255), chainheight varchar(255))";
                     break;
                 case TableType.Address_Asset:
-                    createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, addr varchar(255), asset varchar(255)), type varchar(255)";
+                    createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, addr varchar(255), asset varchar(255), type varchar(255))";
                     break;
             }
             using (MySqlConnection conn = new MySqlConnection(conf))
