@@ -151,7 +151,7 @@ namespace Zoro.Spider
                             j["address"] = tx["to"].ToString();
                             j["txid"] = tx["txid"].ToString();
                             address.Save(j, blockHeight, blockTime);
-                            addressAsset.Save(tx["to"].ToString(), contract);
+                            addressAsset.Save(tx["to"].ToString(), contract, script);
                             address_tx.Save(j, blockHeight, blockTime);
                             nep5Transfer.Save(tx);
                         }

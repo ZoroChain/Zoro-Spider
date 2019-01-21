@@ -19,7 +19,7 @@ namespace Zoro.Spider
             return true;
         }
 
-        public void Save(string addr, string asset)
+        public void Save(string addr, string asset, string script)
         {
             Dictionary<string, string> selectWhere = new Dictionary<string, string>();
             selectWhere.Add("addr", addr);
@@ -27,9 +27,13 @@ namespace Zoro.Spider
             DataTable dt = MysqlConn.ExecuteDataSet(DataTableName, selectWhere).Tables[0];
             if (dt.Rows.Count == 0)
             {
+                string type = "";
+                if (script.EndsWith(Helper.ZoroNativeNep5Call)) type = "NativeNep5";
+                else type = "Nep5";
                 List<string> slist = new List<string>();
                 slist.Add(addr);
                 slist.Add(asset);
+                slist.Add(type);
                 MysqlConn.ExecuteDataInsert(DataTableName, slist);
             }           
         }
