@@ -43,6 +43,8 @@ namespace Zoro.Spider
             result["scripts"] = jObject["scripts"];
             result["nonce"] = jObject["nonce"];
             result["blockindex"] = blockHeight;
+            result["gas_limit"] = jObject["gas_limit"];
+            result["gas_price"] = jObject["gas_price"];
 
             List<string> slist = new List<string>();
             slist.Add(result["txid"].ToString());
@@ -54,6 +56,8 @@ namespace Zoro.Spider
             slist.Add(result["scripts"].ToString());
             slist.Add(result["nonce"].ToString());
             slist.Add(blockHeight.ToString());
+            slist.Add(result["gas_limit"].ToString());
+            slist.Add(result["gas_price"].ToString());
 
             //Dictionary<string, string> dictionary = new Dictionary<string, string>();
             //dictionary.Add("txid", jObject["txid"].ToString());
