@@ -132,6 +132,9 @@ namespace Zoro.Spider
                 string symbol = jStack[2]["type"].AsString() == "ByteArray" ? Encoding.UTF8.GetString(Helper.HexString2Bytes(jStack[2]["value"].AsString())) : jStack[2]["value"].AsString();
                 string decimals = jStack[3]["type"].AsString() == "ByteArray" ? BigInteger.Parse(jStack[3]["value"].AsString()).ToString() : jStack[3]["value"].AsString();
 
+                //BCT没有限制，可以随意增发
+                if (symbol == "BCT") { totalSupply = "0"; }
+
                 List<string> slist = new List<string>();
                 slist.Add(Contract.ToString());
                 slist.Add(totalSupply);
@@ -139,6 +142,7 @@ namespace Zoro.Spider
                 slist.Add(symbol);
                 slist.Add(decimals);
 
+                
                 //这里有个bug，我们的bcp会因为转账而增长          
                 {
                     MysqlConn.ExecuteDataInsert(DataTableName, slist);
