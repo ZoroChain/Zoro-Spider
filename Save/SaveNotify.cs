@@ -18,7 +18,7 @@ namespace Zoro.Spider
         private SaveAddressAsset addressAsset;
         private SaveAddressTransaction address_tx;
         private SaveNEP5Asset nep5Asset;
-        private SaveNEP5Transfer nep5Transfer;
+        private SaveNEP5Transfer nep5Transfer;    
 
         public SaveNotify(UInt160 chainHash)
             : base(chainHash)

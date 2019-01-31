@@ -12,6 +12,7 @@ namespace Zoro.Spider
         private SaveUTXO utxo;
         private SaveAsset asset;
         private SaveNotify notify;
+        private SaveTxScriptMethod txScriptMethod;
 
         public SaveTransaction(UInt160 chainHash)
             : base(chainHash)
@@ -21,6 +22,7 @@ namespace Zoro.Spider
             utxo = new SaveUTXO(chainHash);
             asset = new SaveAsset(chainHash);
             notify = new SaveNotify(chainHash);
+            txScriptMethod = new SaveTxScriptMethod(chainHash);
         }
 
         public override bool CreateTable(string name)
@@ -37,8 +39,6 @@ namespace Zoro.Spider
             result["type"] = jObject["type"];
             result["version"] = jObject["version"];
             result["attributes"] = jObject["attributes"];
-            result["vin"] = jObject["vin"];
-            result["vout"] = jObject["vout"];
             result["sys_fee"] = jObject["sys_fee"];
             result["scripts"] = jObject["scripts"];
             result["nonce"] = jObject["nonce"];
@@ -59,6 +59,8 @@ namespace Zoro.Spider
             slist.Add(result["gas_limit"].ToString());
             slist.Add(result["gas_price"].ToString());
 
+            if (jObject["script"] != null)
+            txScriptMethod.Save(jObject["script"].ToString(), blockHeight, jObject["txid"].ToString());
             //Dictionary<string, string> dictionary = new Dictionary<string, string>();
             //dictionary.Add("txid", jObject["txid"].ToString());
             //dictionary.Add("blockheight", blockHeight.ToString());
@@ -82,7 +84,7 @@ namespace Zoro.Spider
             if (result["type"].ToString() == "InvocationTransaction")
             {
                 notify.Save(jObject, blockHeight, blockTime, jObject["script"].ToString());
-                Thread.Sleep(50);
+                Thread.Sleep(20);
             }
         }
     }
