@@ -16,7 +16,7 @@ namespace Zoro.Spider
 
         static Settings()
         {
-            IConfigurationSection section = new ConfigurationBuilder().AddJsonFile("config.json").Build().GetSection("ApplicationConfiguration");
+            IConfigurationSection section = new ConfigurationBuilder().AddJsonFile(Program.Config).Build().GetSection("ApplicationConfiguration");
             Default = new Settings(section);
         }
 

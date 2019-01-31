@@ -20,6 +20,7 @@ namespace Zoro.Spider
 
         private static LogLevel logLevel = LogLevel.Warning;
         private static object logLock = new object();
+        public static string Config = "config.json";
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
@@ -58,13 +59,28 @@ namespace Zoro.Spider
 
         static void Main(string[] args)
         {
+            if (args.Length == 1)
+            {
+                switch (args[0])
+                {
+                    case "--test":
+                        Config = "config.testnet.json";
+                        break;
+                    case "--main":
+                        Config = "config.mainnet.json";
+                        break;
+                    default:
+                        Config = "config.json";
+                        break;
+                }
+            }
             //C#为了使用并发
             System.Net.ServicePointManager.DefaultConnectionLimit = 512;
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             ProjectInfo.head();
-
+            
             MysqlConn.conf = Settings.Default.MysqlConfig;
             MysqlConn.dbname = Settings.Default.DataBaseName;
 
