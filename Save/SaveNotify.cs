@@ -75,14 +75,6 @@ namespace Zoro.Spider
 
             if (result != null && executions != null)
             {
-                //JObject jObject = new JObject();
-                //jObject["txid"] = jToken["txid"];
-                //jObject["vmstate"] = executions["vmstate"];
-                //jObject["gas_consumed"] = executions["gas_consumed"];
-                //jObject["stack"] = executions["stack"];
-                //jObject["notifications"] = executions["notifications"];
-                //jObject["blockindex"] = blockHeight;
-
                 List<string> slist = new List<string>();
                 slist.Add(jToken["txid"].ToString());
                 slist.Add(executions["vmstate"].ToString());
@@ -91,11 +83,6 @@ namespace Zoro.Spider
                 slist.Add(executions["notifications"].ToString().Replace(@"[/n/r]", ""));
                 slist.Add(blockHeight.ToString());
 
-                //Dictionary<string, string> dictionary = new Dictionary<string, string>();
-                //dictionary.Add("txid", jToken["txid"].ToString());
-                //dictionary.Add("blockindex", blockHeight.ToString());
-                //bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
-                //if (!exist)
                 if (ChainSpider.checkHeight == int.Parse(blockHeight.ToString()))
                 {
                     Dictionary<string, string> where = new Dictionary<string, string>();
@@ -106,8 +93,13 @@ namespace Zoro.Spider
                 {
                     MysqlConn.ExecuteDataInsert(DataTableName, slist);
                 }
-
+               
                 Program.Log($"SaveNotify {ChainHash} {jToken["txid"]}", Program.LogLevel.Info, ChainHash.ToString());
+
+                if (executions["vmstate"].ToString().Contains("FAULT"))
+                {
+                    return;
+                }
 
                 JToken notifications = executions["notifications"];
 

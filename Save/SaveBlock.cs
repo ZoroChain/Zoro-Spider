@@ -49,6 +49,7 @@ namespace Zoro.Spider
             slist.Add(jObject["nextconsensus"].ToString());
             slist.Add(jObject["script"].ToString());
             slist.Add(jObject["tx"].ToString());
+            slist.Add((jObject["tx"] as JArray).Count.ToString());
 
             if (ChainSpider.checkHeight == int.Parse(jObject["index"].ToString())) {
                 Dictionary<string, string> where = new Dictionary<string, string>();

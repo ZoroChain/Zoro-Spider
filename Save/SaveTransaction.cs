@@ -4,6 +4,7 @@ using System.IO;
 using System.Data;
 using Newtonsoft.Json.Linq;
 using System.Threading;
+using System.Linq;
 
 namespace Zoro.Spider
 {
@@ -45,6 +46,7 @@ namespace Zoro.Spider
             result["blockindex"] = blockHeight;
             result["gas_limit"] = jObject["gas_limit"];
             result["gas_price"] = jObject["gas_price"];
+            result["account"] = jObject["account"];
 
             List<string> slist = new List<string>();
             slist.Add(result["txid"].ToString());
@@ -58,9 +60,10 @@ namespace Zoro.Spider
             slist.Add(blockHeight.ToString());
             slist.Add(result["gas_limit"].ToString());
             slist.Add(result["gas_price"].ToString());
+            slist.Add(UInt160.Parse(StringRemoveZoro(result["account"].ToString()).HexToBytes().Reverse().ToHexString()).ToAddress());
 
             if (jObject["script"] != null)
-            txScriptMethod.Save(jObject["script"].ToString(), blockHeight, jObject["txid"].ToString());
+                txScriptMethod.Save(jObject["script"].ToString(), blockHeight, jObject["txid"].ToString());
             //Dictionary<string, string> dictionary = new Dictionary<string, string>();
             //dictionary.Add("txid", jObject["txid"].ToString());
             //dictionary.Add("blockheight", blockHeight.ToString());
@@ -77,15 +80,23 @@ namespace Zoro.Spider
                 MysqlConn.ExecuteDataInsert(DataTableName, slist);
             }
 
-            Program.Log($"SaveTransaction {ChainHash} {blockHeight}", Program.LogLevel.Info, ChainHash.ToString());           
+            Program.Log($"SaveTransaction {ChainHash} {blockHeight}", Program.LogLevel.Info, ChainHash.ToString());
 
-            utxo.Save(result, blockHeight);                      
+            utxo.Save(result, blockHeight);
 
             if (result["type"].ToString() == "InvocationTransaction")
             {
                 notify.Save(jObject, blockHeight, blockTime, jObject["script"].ToString());
                 Thread.Sleep(20);
             }
+        }
+
+        private string StringRemoveZoro(string hex) {
+            string s = hex;
+            if (s.StartsWith("0x")) {
+                s = s.Substring(2);
+            }
+            return s;
         }
     }
 }

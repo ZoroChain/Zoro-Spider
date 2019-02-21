@@ -36,7 +36,7 @@ namespace Zoro.Spider
                 case TableType.Block:
                     createSql = "create table "+tableName+" (id bigint(20) primary key auto_increment, hash varchar(255), size varchar(255), version tinyint(3)," +
                 " previousblockhash varchar(255), merkleroot varchar(255)," +
-                " time int(11), indexx int(11), nonce varchar(255), nextconsensus varchar(255), script varchar(2048), tx longtext)";
+                " time int(11), indexx int(11), nonce varchar(255), nextconsensus varchar(255), script varchar(2048), tx longtext, txcount varchar(45))";
                     break;
                 case TableType.Address:
                     createSql = "create table "+tableName+" (id int(11) primary key auto_increment, addr varchar(255)," +
@@ -49,7 +49,7 @@ namespace Zoro.Spider
                 case TableType.Transaction:
                     createSql = "create table "+tableName+" (id int(11) primary key auto_increment, txid varchar(255)," +
                 " size int(11), type varchar(45), version tinyint(3), attributes varchar(2048)," +
-                " sys_fee int(11), scripts varchar(2048), nonce varchar(255), blockheight varchar(45), gas_limit varchar(45), gas_price varchar(45))";
+                " sys_fee int(11), scripts varchar(2048), nonce varchar(255), blockheight varchar(45), gas_limit varchar(45), gas_price varchar(45), account varchar(255))";
                     break;
                 case TableType.Notify:
                     createSql = "create table "+tableName+" (id bigint(20) primary key auto_increment, txid varchar(255), vmstate varchar(255), gas_consumed varchar(255)," +
