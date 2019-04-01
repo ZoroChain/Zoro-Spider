@@ -175,7 +175,10 @@ namespace Zoro.Spider
                 jObject = JObject.Parse(result);
                 JArray jStack = jObject["result"]["stack"] as JArray;
 
-                
+                if (jStack[0]["value"].ToString() == "" || jStack[1]["value"].ToString() == "" || jStack[2]["value"].ToString() == "" || jStack[3]["value"].ToString() == "") {
+                    return;
+                }
+
                 string totalSupply = new BigInteger(Helper.HexString2Bytes(jStack[0]["value"].ToString())).ToString();
                 string name = Encoding.UTF8.GetString(Helper.HexString2Bytes(jStack[1]["value"].ToString()));
                 string symbol = Encoding.UTF8.GetString(Helper.HexString2Bytes(jStack[2]["value"].ToString()));
