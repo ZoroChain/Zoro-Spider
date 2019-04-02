@@ -10,11 +10,13 @@ namespace Zoro.Spider
     class SaveTxScriptMethod : SaveBase
     {
         List<ScriptMethod> scriptMethods = new List<ScriptMethod>();
+        private SaveContractState contractState;
 
         public SaveTxScriptMethod(UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.Tx_Script_Method);
+            contractState = new SaveContractState(chainHash);
         }
 
         public override bool CreateTable(string name)
@@ -44,6 +46,8 @@ namespace Zoro.Spider
                 slist.Add(scriptMethods[i].method);
                 slist.Add(scriptMethods[i].contract);
                 slist.Add(blockHeight.ToString());
+                if (scriptMethods[i].contract.Length >= 40)
+                contractState.SaveAsync(scriptMethods[i].contract);
                 MysqlConn.ExecuteDataInsert(DataTableName, slist);
             }            
         }

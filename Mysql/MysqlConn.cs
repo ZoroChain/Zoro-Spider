@@ -83,6 +83,9 @@ namespace Zoro.Spider
                 case TableType.Tx_Script_Method:
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, txid varchar(255), calltype varchar(255), method varchar(255), contract varchar(255), blockheight varchar(255))";
                     break;
+                case TableType.Contract_State:
+                    createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, hash varchar(255), name varchar(255), author varchar(255), email varchar(255), description varchar(255))";
+                    break;
             }
             using (MySqlConnection conn = new MySqlConnection(conf))
             {
@@ -139,6 +142,9 @@ namespace Zoro.Spider
                     break;
                 case TableType.Tx_Script_Method:
                     alterSql = "alter table " + tableName + " add index index_name (txid,blockheight)";
+                    break;
+                case TableType.Contract_State:
+                    alterSql = "alter table " + tableName + " add index index_name (hash)";
                     break;
                 default:
                     return;
@@ -408,5 +414,6 @@ namespace Zoro.Spider
         public const string Chainlistheight = "chainlistheight";
         public const string Address_Asset = "address_asset";
         public const string Tx_Script_Method = "tx_script_method";
+        public const string Contract_State = "contract_state";
     }
 }
