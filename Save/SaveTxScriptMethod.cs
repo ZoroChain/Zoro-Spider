@@ -57,6 +57,7 @@ namespace Zoro.Spider
             List<string> list = new List<string>();            
             bool isAppCall = false;
             bool create = false;
+            bool isFirst = true;
             if (sb.LastIndexOf("68") > 0 && sb.Substring(sb.LastIndexOf("68")).Length < 50 && sb.Substring(sb.LastIndexOf("68")).Length % 2 == 0)
             {
                 string ss = sb.Substring(sb.LastIndexOf("68") + 4);
@@ -73,24 +74,27 @@ namespace Zoro.Spider
                 }
             }
             if (!create)
-                for (var i = 0; i < sb.Length / 2; i++)
+            for (var i = 0; i < sb.Length / 2; i++)
             {
                 var length = System.Convert.ToInt32(sb.Substring(i * 2, 2), 16);
-                if (length == 103)
-                {
-                    scriptMethods.Add(new ScriptMethod("AppCall", Encoding.UTF8.GetString(list[list.Count - 1].ToString().HexToBytes()), sb.Substring(i * 2 + 2, 20 * 2).HexToBytes().Reverse().ToHexString()));
-                    isAppCall = true;
+                if (!isFirst) {
+                    if (length == 103)
+                    {
+                        scriptMethods.Add(new ScriptMethod("AppCall", Encoding.UTF8.GetString(list[list.Count - 1].ToString().HexToBytes()), sb.Substring(i * 2 + 2, 20 * 2).HexToBytes().Reverse().ToHexString()));
+                        isAppCall = true;
+                    }
+                    else if (length == 104)
+                    {
+                        int l = System.Convert.ToInt32(sb.Substring((i + 1) * 2, 2), 16);
+                        scriptMethods.Add(new ScriptMethod("SysCall", Encoding.UTF8.GetString(list[list.Count - 1].ToString().HexToBytes()), Encoding.UTF8.GetString(sb.Substring(i * 2 + 4, l * 2).HexToBytes())));
+                        length = l + 1;
+                    }
+                    else if (length < 1 || (length > 74 && length < 80) || (length > 80 && length < 110) ||
+                        (length > 113 && length < 136) || (length > 138 && length < 142) || (length > 142 && length < 157)
+                        || (length > 157 && length < 166) || (length > 166 && length < 171) || (length > 171 && length < 175) || (length > 191 && length < 206)
+                        || (length > 223 && length < 229) || (length > 239 && length < 242)) continue;
                 }
-                else if (length == 104)
-                {
-                    int l = System.Convert.ToInt32(sb.Substring((i + 1) * 2, 2), 16);
-                    scriptMethods.Add(new ScriptMethod("SysCall", Encoding.UTF8.GetString(list[list.Count - 1].ToString().HexToBytes()), Encoding.UTF8.GetString(sb.Substring(i * 2 + 4, l * 2).HexToBytes())));
-                    length = l + 1;
-                }
-                else if (length < 1 || (length > 74 && length < 80) || (length > 80 && length < 110) || 
-                    (length > 113 && length < 136) || (length > 138 && length < 142) || (length > 142 && length < 157) 
-                    || (length > 157 && length < 166) || (length > 166 && length < 171) || (length > 171 && length <175) || (length > 191 && length < 206) 
-                    || (length > 223 && length < 229) || (length > 239 && length < 242)) continue;
+                isFirst = false;
                 if (isAppCall)
                 {
                     isAppCall = false;
