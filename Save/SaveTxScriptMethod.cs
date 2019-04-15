@@ -47,8 +47,15 @@ namespace Zoro.Spider
                     AddMethod(txid, "AppCall", method, contract, blockHeight);
                 }
                 else if (op[i].code == OpCode.SYSCALL) {
-                    string method = Encoding.Default.GetString(op[i - 1].paramData);
+                    string method = "";                   
                     string contract = Encoding.Default.GetString(op[i].paramData);
+                    if (contract.IndexOf("Create") != -1)
+                    {
+                        method = "create";
+                    }
+                    else {
+                        method = Encoding.Default.GetString(op[i - 1].paramData);
+                    }
                     AddMethod(txid, "SysCall", method, contract, blockHeight);
                 }
             }           
