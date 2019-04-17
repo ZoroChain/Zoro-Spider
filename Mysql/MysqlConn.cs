@@ -86,6 +86,12 @@ namespace Zoro.Spider
                 case TableType.Contract_State:
                     createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, hash varchar(255), name varchar(255), author varchar(255), email varchar(255), description varchar(255))";
                     break;
+                case TableType.NFT_Address:
+                    createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, addr varchar(255), nfttoken varchar(255))";
+                    break;
+                case TableType.NFT_Message:
+                    createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, addr varchar(255), nfttoken varchar(255))";
+                    break;
             }
             using (MySqlConnection conn = new MySqlConnection(conf))
             {
@@ -415,5 +421,7 @@ namespace Zoro.Spider
         public const string Address_Asset = "address_asset";
         public const string Tx_Script_Method = "tx_script_method";
         public const string Contract_State = "contract_state";
+        public const string NFT_Address = "nft_address";
+        public const string NFT_Message = "nft_message";
     }
 }

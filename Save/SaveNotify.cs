@@ -18,7 +18,8 @@ namespace Zoro.Spider
         private SaveAddressAsset addressAsset;
         private SaveAddressTransaction address_tx;
         private SaveNEP5Asset nep5Asset;
-        private SaveNEP5Transfer nep5Transfer;    
+        private SaveNEP5Transfer nep5Transfer;
+        private SaveNFTAddress nFTAddress;
 
         public SaveNotify(UInt160 chainHash)
             : base(chainHash)
@@ -30,6 +31,7 @@ namespace Zoro.Spider
             address_tx = new SaveAddressTransaction(chainHash);
             nep5Asset = new SaveNEP5Asset(chainHash);
             nep5Transfer = new SaveNEP5Transfer(chainHash);
+            nFTAddress = new SaveNFTAddress(chainHash);
         }
 
         public override bool CreateTable(string name)
@@ -112,6 +114,13 @@ namespace Zoro.Spider
                         string transfer = Encoding.UTF8.GetString(Helper.HexString2Bytes(values[0]["value"].ToString()));
                         string contract = notify["contract"].ToString();
 
+                        if (transfer == "mintToken") {
+                            if (contract == "0x6bdd2520a7c53638ff691ef9b1a5d3e9e6201c22")
+                            {
+                                nFTAddress.Save(UInt160.Parse(values[1]["value"].ToString()).ToAddress(), values[2]["value"].ToString());
+                            }                          
+                        }
+
                         if (transfer == "transfer")
                         {
                             JObject nep5 = new JObject();
@@ -147,6 +156,10 @@ namespace Zoro.Spider
                             addressAsset.Save(tx["to"].ToString(), contract, script);
                             address_tx.Save(j, blockHeight, blockTime);
                             nep5Transfer.Save(tx);
+
+                            if (contract == "0x6bdd2520a7c53638ff691ef9b1a5d3e9e6201c22") {
+                                nFTAddress.Save(UInt160.Parse(values[2]["value"].ToString()).ToAddress(), values[3]["value"].ToString());
+                            }
                         }
                     }
                 }
