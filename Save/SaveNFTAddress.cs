@@ -19,14 +19,16 @@ namespace Zoro.Spider
             return true;
         }
 
-        public void Save(string addr, string nfttoken)
+        public void Save(string contract, string addr, string nfttoken)
         {
             Dictionary<string, string> selectWhere = new Dictionary<string, string>();
+            selectWhere.Add("contract", contract);
             selectWhere.Add("nfttoken", nfttoken);
             DataTable dt = MysqlConn.ExecuteDataSet(DataTableName, selectWhere).Tables[0];
             if (dt.Rows.Count == 0)
             {
                 List<string> slist = new List<string>();
+                slist.Add(contract);
                 slist.Add(addr);
                 slist.Add(nfttoken);
                 MysqlConn.ExecuteDataInsert(DataTableName, slist);
@@ -38,5 +40,4 @@ namespace Zoro.Spider
             }
         }
     }
-}
 }

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Neo.VM;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -22,6 +23,15 @@ namespace Zoro.Spider
             return true;
         }
 
+        public async Task<string> GetSupportedStandard(string contract) {
+            Dictionary<string, string> selectWhere = new Dictionary<string, string>();
+            selectWhere.Add("hash", contract);
+            DataTable dt = MysqlConn.ExecuteDataSet(DataTableName, selectWhere).Tables[0];
+            if (dt.Rows.Count > 0)
+            return dt.Rows[0]["supportstandard"].ToString();
+            return "Other";
+        }
+
         public async void SaveAsync(string hash) {
             JToken result = null;
             try
@@ -29,6 +39,7 @@ namespace Zoro.Spider
                 WebClient wc = new WebClient();
                 wc.Proxy = null;
                 result = await GetContractState(wc, ChainHash, hash);
+                string supportedStandard = await GetNEP5Asset(UInt160.Parse(hash));
                 if (result != null && result["message"] == null) {
                     JToken jToken = result;
                     Dictionary<string, string> selectWhere = new Dictionary<string, string>();
@@ -45,6 +56,7 @@ namespace Zoro.Spider
                     slist.Add(jToken["author"].ToString());
                     slist.Add(jToken["email"].ToString());
                     slist.Add(jToken["description"].ToString());
+                    slist.Add(supportedStandard);
                     MysqlConn.ExecuteDataInsert(DataTableName, slist);
                 }
                     
@@ -74,6 +86,33 @@ namespace Zoro.Spider
                 Program.Log($"error occured when call getcontractstate, chain:{ChainHash}, reason:{e.Message}", Program.LogLevel.Error);
                 //throw e;
                 return await GetContractState(wc, ChainHash, hash);
+            }
+        }
+
+        public async Task<string> GetNEP5Asset(UInt160 Contract)
+        {
+            try
+            {
+                ScriptBuilder sb = new ScriptBuilder();
+
+                sb.EmitAppCall(Contract, "supportedStandards");
+
+                JObject jObject;
+
+                var result = await ZoroHelper.InvokeScript(sb.ToArray(), ChainHash.ToString());
+
+                jObject = JObject.Parse(result);
+                JArray jStack = jObject["result"]["stack"] as JArray;
+
+                if (jStack[0]["value"].ToString() == "") {
+                    return "";
+                }
+                string supportedStandards = Encoding.UTF8.GetString(Helper.HexString2Bytes(jStack[0]["value"].ToString()));
+                return supportedStandards;
+            }
+            catch (Exception e)
+            {
+                return await GetNEP5Asset(Contract);
             }
         }
     }
