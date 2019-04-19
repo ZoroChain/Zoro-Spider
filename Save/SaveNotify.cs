@@ -118,10 +118,15 @@ namespace Zoro.Spider
 
                         if (transfer == "mintToken") {
                             string nep = await saveContractState.GetSupportedStandard(contract);
-                            if (nep.Contains("NEP-10"))
-                                nFTAddress.Save(contract, UInt160.Parse(values[1]["value"].ToString()).ToAddress(), values[2]["value"].ToString());                         
+                            if (nep.Contains("NEP-10")) {
+                                nFTAddress.Save(contract, UInt160.Parse(values[1]["value"].ToString()).ToAddress(), values[2]["value"].ToString(), values[3] == null? "":values[3]["value"].ToString());
+                            }                                                       
                         }
-
+                        if (transfer == "modifyProperties") {
+                            string nep = await saveContractState.GetSupportedStandard(contract);
+                            if (nep.Contains("NEP-10"))
+                                nFTAddress.Update(contract, UInt160.Parse(values[1]["value"].ToString()).ToAddress(), values[2]["value"].ToString());
+                        }
                         if (transfer == "transfer")
                         {
                             JObject nep5 = new JObject();

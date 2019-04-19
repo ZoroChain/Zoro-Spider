@@ -88,7 +88,7 @@ namespace Zoro.Spider
                         "author varchar(255), email varchar(255), description varchar(255), supportstandard varchar(255))";
                     break;
                 case TableType.NFT_Address:
-                    createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, contract varchar(255), addr varchar(255), nfttoken varchar(255))";
+                    createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, contract varchar(255), addr varchar(255), nfttoken varchar(255), properties longtext)";
                     break;
             }
             using (MySqlConnection conn = new MySqlConnection(conf))
@@ -149,6 +149,9 @@ namespace Zoro.Spider
                     break;
                 case TableType.Contract_State:
                     alterSql = "alter table " + tableName + " add index index_name (hash)";
+                    break;
+                case TableType.NFT_Address:
+                    alterSql = "alter table " + tableName + " add index index_name (addr)";
                     break;
                 default:
                     return;
@@ -420,6 +423,5 @@ namespace Zoro.Spider
         public const string Tx_Script_Method = "tx_script_method";
         public const string Contract_State = "contract_state";
         public const string NFT_Address = "nft_address";
-        public const string NFTAsset = "nftasset";
     }
 }
