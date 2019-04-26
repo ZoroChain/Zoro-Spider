@@ -1,11 +1,9 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Text;
 using System.Net;
 using System.Numerics;
-using System.Globalization;
 using System.Threading.Tasks;
 using Neo.VM;
 
