@@ -21,8 +21,10 @@ namespace Zoro.Spider
         public void Save(JToken jObject, uint blockHeight, uint blockTime)
         {           
             Dictionary<string, string> selectWhere = new Dictionary<string, string>();
-            selectWhere.Add("addr", jObject["address"].ToString());
-            DataTable dt = MysqlConn.ExecuteDataSet(DataTableName, selectWhere).Tables[0];
+
+            string sql = $"select * from {DataTableName} where addr = '{jObject["address"].ToString()}'";
+            DataTable dt = MysqlConn.ExecuteDataSet(sql).Tables[0];
+
             if (dt.Rows.Count != 0)
             {
                 Dictionary<string, string> dirs = new Dictionary<string, string>();

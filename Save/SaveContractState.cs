@@ -23,15 +23,6 @@ namespace Zoro.Spider
             return true;
         }
 
-        public async Task<string> GetSupportedStandard(string contract) {
-            Dictionary<string, string> selectWhere = new Dictionary<string, string>();
-            selectWhere.Add("hash", contract);
-            DataTable dt = MysqlConn.ExecuteDataSet(DataTableName, selectWhere).Tables[0];
-            if (dt.Rows.Count > 0)
-            return dt.Rows[0]["supportstandard"].ToString();
-            return "Other";
-        }
-
         public async void SaveAsync(string hash) {
             JToken result = null;
             try
@@ -66,8 +57,6 @@ namespace Zoro.Spider
                 Program.Log($"error occured when call getcontractstate, chain:{ChainHash}, reason:{e.Message}", Program.LogLevel.Error);
                 throw e;
             }
-
-            
             
         }
 

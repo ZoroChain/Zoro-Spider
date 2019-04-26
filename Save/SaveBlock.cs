@@ -25,18 +25,6 @@ namespace Zoro.Spider
 
         public void Save(WebClient wc, JToken jObject, uint height)
         {
-            JObject result = new JObject();
-            result["hash"] = jObject["hash"];
-            result["size"] = jObject["size"];
-            result["version"] = jObject["version"];
-            result["previousblockhash"] = jObject["previousblockhash"];
-            result["merkleroot"] = jObject["merkleroot"];
-            result["time"] = jObject["time"];
-            result["index"] = jObject["index"];
-            result["nonce"] = jObject["nonce"];
-            result["nextconsensus"] = jObject["nextconsensus"];
-            result["script"] = jObject["script"];
-
             List<string> slist = new List<string>();
             slist.Add(jObject["hash"].ToString());
             slist.Add(jObject["size"].ToString());
@@ -58,7 +46,7 @@ namespace Zoro.Spider
             }
             MysqlConn.ExecuteDataInsert(DataTableName, slist);
             
-            uint blockTime = uint.Parse(result["time"].ToString());
+            uint blockTime = uint.Parse(jObject["time"].ToString());
 
             int numTx = 0;
             foreach (var tx in jObject["tx"])

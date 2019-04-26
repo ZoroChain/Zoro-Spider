@@ -215,40 +215,47 @@ namespace Zoro.Spider
             }
         }
 
-        public static bool CheckExist(string tableName, Dictionary<string, string> where)
+        public static DataSet ExecuteDataSet(string sql)
         {
             MySqlConnection conn = new MySqlConnection(conf);
 
             try
             {
-                //DateTime dt = DateTime.Now;
-
                 conn.Open();
-                string select = "select id from " + tableName;
-                if (where.Count != 0)
-                {
-                    select += " where";
-                }
-                foreach (var dir in where)
-                {
-                    select += " " + dir.Key + "='" + dir.Value + "'";
-                    select += " and";
-                }
-                if (where.Count > 0)
-                    select = select.Substring(0, select.Length - 4);
+                
+                MySqlDataAdapter adapter = new MySqlDataAdapter(sql, conf);
+                DataSet ds = new DataSet();
+                adapter.Fill(ds);
 
-                MySqlCommand cmd = new MySqlCommand(select, conn);
+                return ds;
+            }
+            catch (Exception e)
+            {
+                Program.Log($"Error when execute: {sql}, reason:{e.Message}", Program.LogLevel.Error);
+                throw e;
+            }
+            finally
+            {
+                conn.Close();
+            }
+        }
+
+        public static bool CheckExist(string sql)
+        {
+            MySqlConnection conn = new MySqlConnection(conf);
+            try
+            {
+                conn.Open();                
+
+                MySqlCommand cmd = new MySqlCommand(sql, conn);
                 MySqlDataReader reader = cmd.ExecuteReader();
-                bool result = reader.Read();
-
-                //TimeSpan span = DateTime.Now - dt;
-                //Program.Log($"Execute Select {tableName} time:{span:hh\\:mm\\:ss\\.fff}", Program.LogLevel.Warning);
+                bool result = reader.Read();                
 
                 return result;
             }
             catch (Exception e)
             {
-                Program.Log($"Error when execute select {tableName}, reason:{e.Message}", Program.LogLevel.Error);
+                Program.Log($"Error when execute: {sql}, reason:{e.Message}", Program.LogLevel.Error);
                 throw e;
             }
             finally

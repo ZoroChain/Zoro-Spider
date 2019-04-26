@@ -72,6 +72,34 @@ namespace Zoro.Spider
             return new UInt160(pkhash);
         }
 
+        public static string GetAddressFromScriptHash(UInt160 scripthash)
+        {
+            System.Security.Cryptography.SHA256 sha256 = System.Security.Cryptography.SHA256.Create();
+            byte[] data = new byte[20 + 1];
+            data[0] = 0x17;
+            Array.Copy(scripthash.ToArray(), 0, data, 1, 20);
+            var hash = sha256.ComputeHash(data);
+            hash = sha256.ComputeHash(hash);
+
+            var alldata = data.Concat(hash.Take(4)).ToArray();
+
+            return Base58.Encode(alldata);
+        }
+
+        public static string GetAddressFromScriptHash(byte[] scripthash)
+        {
+            System.Security.Cryptography.SHA256 sha256 = System.Security.Cryptography.SHA256.Create();
+            byte[] data = new byte[20 + 1];
+            data[0] = 0x17;
+            Array.Copy(scripthash.ToArray(), 0, data, 1, 20);
+            var hash = sha256.ComputeHash(data);
+            hash = sha256.ComputeHash(hash);
+
+            var alldata = data.Concat(hash.Take(4)).ToArray();
+
+            return Base58.Encode(alldata);
+        }
+
         public static UInt160 GetMultiSigRedeemScriptHash(int m, KeyPair[] keypairs)
         {
             return Contract.CreateMultiSigRedeemScript(m, keypairs.Select(p => p.PublicKey).ToArray()).ToScriptHash();

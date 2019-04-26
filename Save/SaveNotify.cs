@@ -19,7 +19,7 @@ namespace Zoro.Spider
         private SaveAddressTransaction address_tx;
         private SaveNEP5Asset nep5Asset;
         private SaveNEP5Transfer nep5Transfer;
-        private SaveNFTAddress nFTAddress;
+        private SaveNFTAddress nftAddress;
         private SaveContractState saveContractState;
 
         public SaveNotify(UInt160 chainHash)
@@ -32,7 +32,7 @@ namespace Zoro.Spider
             address_tx = new SaveAddressTransaction(chainHash);
             nep5Asset = new SaveNEP5Asset(chainHash);
             nep5Transfer = new SaveNEP5Transfer(chainHash);
-            nFTAddress = new SaveNFTAddress(chainHash);
+            nftAddress = new SaveNFTAddress(chainHash);
             saveContractState = new SaveContractState(chainHash);
         }
 
@@ -73,7 +73,7 @@ namespace Zoro.Spider
             }
             catch (Exception e)
             {
-                Program.Log($"error occured when call getapplicationlog, chain:{ChainHash} height:{blockHeight}, reason:{e.Message}", Program.LogLevel.Error);
+                Program.Log($"error occured when call getapplicationlog, chain:{ChainHash} txid:{jToken["txid"].ToString()}, reason:{e.Message}", Program.LogLevel.Error);
                 throw e;
             }
 
@@ -100,11 +100,8 @@ namespace Zoro.Spider
                
                 Program.Log($"SaveNotify {ChainHash} {jToken["txid"]}", Program.LogLevel.Info, ChainHash.ToString());
 
-                if (executions["vmstate"].ToString().Contains("FAULT"))
-                {
-                    return;
-                }
-
+                if (executions["vmstate"].ToString().Contains("FAULT")) return;
+                
                 JToken notifications = executions["notifications"];
 
                 foreach (JObject notify in notifications)
@@ -113,24 +110,28 @@ namespace Zoro.Spider
 
                     if (values[0]["type"].ToString() == "ByteArray")
                     {
-                        string transfer = Encoding.UTF8.GetString(Helper.HexString2Bytes(values[0]["value"].ToString()));
+                        string method = Encoding.UTF8.GetString(Helper.HexString2Bytes(values[0]["value"].ToString()));
                         string contract = notify["contract"].ToString();
 
-                        if (transfer == "mintToken") {
-                            string nep = await saveContractState.GetSupportedStandard(contract);
-                            if (nep.Contains("NEP-10")) {
-                                nFTAddress.Save(contract, UInt160.Parse(values[1]["value"].ToString()).ToAddress(), values[2]["value"].ToString(), values[3] == null? "":values[3]["value"].ToString());
-                            }                                                       
+                        if (method == "mintToken")
+                        {
+                            string supportedStandard = GetSupportedStandard(contract);
+                            if (supportedStandard.Contains("NEP-10"))
+                            {
+                                nftAddress.Save(contract, UInt160.Parse(values[1]["value"].ToString()).ToAddress(), values[2]["value"].ToString(), values[3] == null ? "" : values[3]["value"].ToString());
+                            }
                         }
-                        if (transfer == "modifyProperties") {
-                            string nep = await saveContractState.GetSupportedStandard(contract);
-                            if (nep.Contains("NEP-10"))
-                                nFTAddress.Update(contract, UInt160.Parse(values[1]["value"].ToString()).ToAddress(), values[2]["value"].ToString());
+                        if (method == "modifyProperties")
+                        {
+                            string supportedStandard = GetSupportedStandard(contract);
+                            if (supportedStandard.Contains("NEP-10"))
+                                nftAddress.Update(contract, UInt160.Parse(values[1]["value"].ToString()).ToAddress(), values[2]["value"].ToString());
                         }
-                        if (transfer == "transfer")
+                        if (method == "transfer")
                         {
                             JObject nep5 = new JObject();
                             nep5["assetid"] = contract;
+
                             nep5Asset.Save(nep5, script);
 
                             //存储Nep5Transfer内容
@@ -139,37 +140,41 @@ namespace Zoro.Spider
                             tx["txid"] = jToken["txid"].ToString();
                             tx["n"] = 0;
                             tx["asset"] = contract;
-                            if (values[1]["value"].ToString() == "")
-                            {
-                                tx["from"] = "";
-                            }
-                            else {
-                                tx["from"] = UInt160.Parse(values[1]["value"].ToString()).ToAddress();
-                            }
-                            
+                            tx["from"] = values[1]["value"].ToString() == "" ? "" : UInt160.Parse(values[1]["value"].ToString()).ToAddress();
                             tx["to"] = UInt160.Parse(values[2]["value"].ToString()).ToAddress();
                             if (values[3]["type"].ToString() == "ByteArray")
                             {
                                 tx["value"] = new BigInteger(Helper.HexString2Bytes(values[3]["value"].ToString())).ToString();
                             }
-                            else {
+                            else
+                            {
                                 tx["value"] = BigInteger.Parse(values[3]["value"].ToString(), NumberStyles.AllowHexSpecifier).ToString();
                             }                           
                             JObject j = new JObject();
                             j["address"] = tx["to"].ToString();
                             j["txid"] = tx["txid"].ToString();
+
                             address.Save(j, blockHeight, blockTime);
                             addressAsset.Save(tx["to"].ToString(), contract, script);
                             address_tx.Save(j, blockHeight, blockTime);
                             nep5Transfer.Save(tx);
 
-                            string nep = await saveContractState.GetSupportedStandard(contract);
-                            if (nep.Contains("NEP-10"))
-                                nFTAddress.Save(contract, UInt160.Parse(values[2]["value"].ToString()).ToAddress(), values[3]["value"].ToString());
+                            string supportedStandard = GetSupportedStandard(contract);
+                            if (supportedStandard.Contains("NEP-10"))
+                                nftAddress.Save(contract, UInt160.Parse(values[2]["value"].ToString()).ToAddress(), values[3]["value"].ToString());
                         }
                     }
                 }
             }
+        }
+
+        private string GetSupportedStandard(string contract)
+        {
+            string sql = $"select * from {DataTableName} where hash='{contract}'";
+            DataTable dt = MysqlConn.ExecuteDataSet(sql).Tables[0];
+            if (dt.Rows.Count > 0)
+                return dt.Rows[0]["supportstandard"].ToString();
+            return "Other";
         }
     }
 }

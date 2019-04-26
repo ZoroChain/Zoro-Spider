@@ -10,7 +10,7 @@ namespace Zoro.Spider
 {
     class SaveTransaction : SaveBase
     {
-        private SaveUTXO utxo;
+        //private SaveUTXO utxo;
         private SaveAsset asset;
         private SaveNotify notify;
         private SaveTxScriptMethod txScriptMethod;
@@ -20,7 +20,7 @@ namespace Zoro.Spider
         {
             InitDataTable(TableType.Transaction);
 
-            utxo = new SaveUTXO(chainHash);
+            //utxo = new SaveUTXO(chainHash);
             asset = new SaveAsset(chainHash);
             notify = new SaveNotify(chainHash);
             txScriptMethod = new SaveTxScriptMethod(chainHash);
@@ -34,33 +34,19 @@ namespace Zoro.Spider
 
         public void Save(JToken jObject, uint blockHeight, uint blockTime)
         {
-            JObject result = new JObject();
-            result["txid"] = jObject["txid"];
-            result["size"] = jObject["size"];
-            result["type"] = jObject["type"];
-            result["version"] = jObject["version"];
-            result["attributes"] = jObject["attributes"];
-            result["sys_fee"] = jObject["sys_fee"];
-            result["scripts"] = jObject["scripts"];
-            result["nonce"] = jObject["nonce"];
-            result["blockindex"] = blockHeight;
-            result["gas_limit"] = jObject["gas_limit"];
-            result["gas_price"] = jObject["gas_price"];
-            result["account"] = jObject["account"];
-
             List<string> slist = new List<string>();
-            slist.Add(result["txid"].ToString());
-            slist.Add(result["size"].ToString());
-            slist.Add(result["type"].ToString());
-            slist.Add(result["version"].ToString());
-            slist.Add(result["attributes"].ToString());
-            slist.Add(result["sys_fee"].ToString());
-            slist.Add(result["scripts"].ToString());
-            slist.Add(result["nonce"].ToString());
+            slist.Add(jObject["txid"].ToString());
+            slist.Add(jObject["size"].ToString());
+            slist.Add(jObject["type"].ToString());
+            slist.Add(jObject["version"].ToString());
+            slist.Add(jObject["attributes"].ToString());
+            slist.Add(jObject["sys_fee"].ToString());
+            slist.Add(jObject["scripts"].ToString());
+            slist.Add(jObject["nonce"].ToString());
             slist.Add(blockHeight.ToString());
-            slist.Add(result["gas_limit"].ToString());
-            slist.Add(result["gas_price"].ToString());
-            slist.Add(UInt160.Parse(StringRemoveZoro(result["account"].ToString()).HexToBytes().Reverse().ToHexString()).ToAddress());
+            slist.Add(jObject["gas_limit"]?.ToString());
+            slist.Add(jObject["gas_price"]?.ToString());            
+            slist.Add(ZoroHelper.GetAddressFromScriptHash(UInt160.Parse(jObject["account"].ToString())));
 
             if (jObject["script"] != null)
                 txScriptMethod.Save(jObject["script"].ToString(), blockHeight, jObject["txid"].ToString());
@@ -80,23 +66,16 @@ namespace Zoro.Spider
                 MysqlConn.ExecuteDataInsert(DataTableName, slist);
             }
 
-            Program.Log($"SaveTransaction {ChainHash} {blockHeight}", Program.LogLevel.Info, ChainHash.ToString());
+            Program.Log($"SaveTransaction {ChainHash} {blockHeight} {jObject["txid"].ToString()}", Program.LogLevel.Info, ChainHash.ToString());
 
-            utxo.Save(result, blockHeight);
+            //utxo.Save(jObject, blockHeight);
 
-            if (result["type"].ToString() == "InvocationTransaction")
+            if (jObject["type"].ToString() == "InvocationTransaction")
             {
                 notify.Save(jObject, blockHeight, blockTime, jObject["script"].ToString());
-                Thread.Sleep(20);
+                //Thread.Sleep(20);
             }
         }
-
-        private string StringRemoveZoro(string hex) {
-            string s = hex;
-            if (s.StartsWith("0x")) {
-                s = s.Substring(2);
-            }
-            return s;
-        }
+        
     }
 }

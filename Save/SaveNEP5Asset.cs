@@ -27,19 +27,17 @@ namespace Zoro.Spider
 
         public void Save(JToken jToken, string script)
         {
-            string contract = jToken["assetid"].ToString();
-            Dictionary<string, string> where = new Dictionary<string, string>();
-            where.Add("assetid", contract);
-            bool exist = MysqlConn.CheckExist(DataTableName, where);
+            string sql = $"select * from {DataTableName} where assetid = '{jToken["assetid"].ToString()}'";
+            
+            bool exist = MysqlConn.CheckExist(sql);
             if (!exist)
             {
-                Start(contract, script);
+                Start(jToken["assetid"].ToString(), script);
             }
         }
 
         public async void Start(string contract, string script)
         {
-
             if (script.EndsWith(Helper.ZoroNativeNep5Call))
                 await getNativeNEP5Asset(UInt160.Parse(contract));
             else
@@ -48,7 +46,6 @@ namespace Zoro.Spider
 
         public async Task getNativeNEP5Asset(UInt160 Contract)
         {
-
             try
             {
                 ScriptBuilder sb = new ScriptBuilder();
@@ -121,9 +118,8 @@ namespace Zoro.Spider
                 jObject = JObject.Parse(result);
                 JArray jStack = jObject["result"]["stack"] as JArray;
 
-                if (jStack[0]["value"].ToString() == "" || jStack[1]["value"].ToString() == "" || jStack[2]["value"].ToString() == "" || jStack[3]["value"].ToString() == "") {
-                    return;
-                }
+                if (jStack[1]["value"].ToString() == "" || jStack[2]["value"].ToString() == "" || jStack[3]["value"].ToString() == "")
+                    return;                
 
                 string totalSupply = new BigInteger(Helper.HexString2Bytes(jStack[0]["value"].ToString())).ToString();
                 string name = Encoding.UTF8.GetString(Helper.HexString2Bytes(jStack[1]["value"].ToString()));
