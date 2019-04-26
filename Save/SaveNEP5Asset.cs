@@ -121,7 +121,7 @@ namespace Zoro.Spider
                 jObject = JObject.Parse(result);
                 JArray jStack = jObject["result"]["stack"] as JArray;
 
-                if (jStack[0]["value"].ToString() == "" || jStack[1]["value"].ToString() == "" || jStack[2]["value"].ToString() == "" || jStack[3]["value"].ToString() == "") {
+                if (jStack[1]["value"].ToString() == "" || jStack[2]["value"].ToString() == "" || jStack[3]["value"].ToString() == "") {
                     return;
                 }
 
