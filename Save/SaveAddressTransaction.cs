@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
-using System.Data;
 
 namespace Zoro.Spider
 {
@@ -19,25 +18,20 @@ namespace Zoro.Spider
         }
 
         public void Save(JToken jObject, uint blockHeight, uint blockTime)
-        {                      
+        {
             List<string> slist = new List<string>();
             slist.Add(jObject["address"].ToString());
             slist.Add(jObject["txid"].ToString());
             slist.Add(blockHeight.ToString());
             slist.Add(blockTime.ToString());
 
-                
-            if (ChainSpider.checkHeight == int.Parse(blockHeight.ToString()))
-            {
-                Dictionary<string, string> where = new Dictionary<string, string>();
-                where.Add("addr", jObject["address"].ToString());
-                where.Add("blockindex", blockHeight.ToString());
-                where.Add("txid", jObject["txid"].ToString());
-                MysqlConn.Delete(DataTableName, where);
-            }
-            {
-                MysqlConn.ExecuteDataInsert(DataTableName, slist);
-            }
+            Dictionary<string, string> deleteWhere = new Dictionary<string, string>();
+            deleteWhere.Add("addr", jObject["address"].ToString());
+            deleteWhere.Add("blockindex", blockHeight.ToString());
+            deleteWhere.Add("txid", jObject["txid"].ToString());
+
+            MysqlConn.ExecuteDataInsertWithCheck(DataTableName, slist, deleteWhere);
+
         }
     }
 }

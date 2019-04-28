@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
-using System.Text;
 
 namespace Zoro.Spider
 {
@@ -28,8 +26,10 @@ namespace Zoro.Spider
             if (dt.Rows.Count == 0)
             {
                 string type = "";
-                if (script.EndsWith(Helper.ZoroNativeNep5Call)) type = "NativeNep5";
-                else type = "Nep5";
+                if (script.EndsWith(Helper.ZoroNativeNep5Call))
+                    type = "NativeNep5";
+                else
+                    type = "Nep5";
                 List<string> slist = new List<string>();
                 slist.Add(addr);
                 slist.Add(asset);

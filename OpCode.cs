@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Zoro.Spider
+﻿namespace Zoro.Spider
 {
     public enum OpCode : byte
     {

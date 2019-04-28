@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -61,7 +60,8 @@ namespace Zoro.Spider
             }           
         }
 
-        private void AddMethod(string txid, string code, string method, string contract, uint blockHeight) {
+        private void AddMethod(string txid, string code, string method, string contract, uint blockHeight)
+        {
             List<string> slist = new List<string>();
             slist.Add(txid);
             slist.Add(code);
@@ -74,11 +74,13 @@ namespace Zoro.Spider
         }
     }
 
-    class ScriptMethod {
+    class ScriptMethod
+    {
         public string calltype;
         public string method;
         public string contract;
-        public ScriptMethod(string calltype, string method, string contract) {
+        public ScriptMethod(string calltype, string method, string contract)
+        {
             this.calltype = calltype;
             this.method = method;
             this.contract = contract;

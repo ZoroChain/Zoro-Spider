@@ -5,12 +5,6 @@ VisualStudioVersion = 15.0.28010.2003
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zoro-Spider", "Zoro-Spider.csproj", "{0987D3E1-C544-4785-9CAA-3CBB2B8A016C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zoro", "..\Zoro\Zoro\Zoro.csproj", "{00CCAF6E-0B23-4FDF-98EF-125DC7CCE4BD}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cowboy.Sockets", "..\CowboyLib\Cowboy.Sockets\Cowboy.Sockets.csproj", "{CC71901E-5FD1-4218-AC28-C034A878B9A4}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Logrila.Logging", "..\CowboyLib\Logrila.Logging\Logrila.Logging.csproj", "{A0A20DDA-2710-45B0-99F9-2F3602CA4DF7}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,18 +15,6 @@ Global
 		{0987D3E1-C544-4785-9CAA-3CBB2B8A016C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0987D3E1-C544-4785-9CAA-3CBB2B8A016C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0987D3E1-C544-4785-9CAA-3CBB2B8A016C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{00CCAF6E-0B23-4FDF-98EF-125DC7CCE4BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{00CCAF6E-0B23-4FDF-98EF-125DC7CCE4BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{00CCAF6E-0B23-4FDF-98EF-125DC7CCE4BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{00CCAF6E-0B23-4FDF-98EF-125DC7CCE4BD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CC71901E-5FD1-4218-AC28-C034A878B9A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CC71901E-5FD1-4218-AC28-C034A878B9A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CC71901E-5FD1-4218-AC28-C034A878B9A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CC71901E-5FD1-4218-AC28-C034A878B9A4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A0A20DDA-2710-45B0-99F9-2F3602CA4DF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A0A20DDA-2710-45B0-99F9-2F3602CA4DF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A0A20DDA-2710-45B0-99F9-2F3602CA4DF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A0A20DDA-2710-45B0-99F9-2F3602CA4DF7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

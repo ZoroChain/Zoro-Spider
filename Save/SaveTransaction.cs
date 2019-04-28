@@ -1,10 +1,5 @@
-﻿using System.Net;
-using System.Collections.Generic;
-using System.IO;
-using System.Data;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
-using System.Threading;
-using System.Linq;
 
 namespace Zoro.Spider
 {
@@ -45,30 +40,19 @@ namespace Zoro.Spider
             slist.Add(jObject["nonce"].ToString());
             slist.Add(blockHeight.ToString());
             slist.Add(jObject["gas_limit"]?.ToString());
-            slist.Add(jObject["gas_price"]?.ToString());            
+            slist.Add(jObject["gas_price"]?.ToString());
             slist.Add(ZoroHelper.GetAddressFromScriptHash(UInt160.Parse(jObject["account"].ToString())));
 
             if (jObject["script"] != null)
                 txScriptMethod.Save(jObject["script"].ToString(), blockHeight, jObject["txid"].ToString());
-            //Dictionary<string, string> dictionary = new Dictionary<string, string>();
-            //dictionary.Add("txid", jObject["txid"].ToString());
-            //dictionary.Add("blockheight", blockHeight.ToString());
-            //bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
-            //if (!exist)
-            if (ChainSpider.checkHeight == int.Parse(blockHeight.ToString()))
-            {
-                Dictionary<string, string> where = new Dictionary<string, string>();
-                where.Add("txid", jObject["txid"].ToString());
-                where.Add("blockheight", blockHeight.ToString());
-                MysqlConn.Delete(DataTableName, where);
-            }
-            {
-                MysqlConn.ExecuteDataInsert(DataTableName, slist);
-            }
+
+            Dictionary<string, string> deleteWhere = new Dictionary<string, string>();
+            deleteWhere.Add("txid", jObject["txid"].ToString());
+            deleteWhere.Add("blockheight", blockHeight.ToString());
+
+            MysqlConn.ExecuteDataInsertWithCheck(DataTableName, slist, deleteWhere);
 
             Program.Log($"SaveTransaction {ChainHash} {blockHeight} {jObject["txid"].ToString()}", Program.LogLevel.Info, ChainHash.ToString());
-
-            //utxo.Save(jObject, blockHeight);
 
             if (jObject["type"].ToString() == "InvocationTransaction")
             {

@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
-using System.Data;
 
 namespace Zoro.Spider
 {
@@ -29,21 +28,11 @@ namespace Zoro.Spider
             slist.Add(jToken["to"].ToString());
             slist.Add(jToken["value"].ToString());
 
-            //Dictionary<string, string> dictionary = new Dictionary<string, string>();
-            //dictionary.Add("txid", jToken["txid"].ToString());
-            //dictionary.Add("blockindex", jToken["blockindex"].ToString());
-            //bool exist = MysqlConn.CheckExist(DataTableName, dictionary);
-            //if (!exist)
-            if (ChainSpider.checkHeight == int.Parse(jToken["blockindex"].ToString()))
-            {
-                Dictionary<string, string> where = new Dictionary<string, string>();
-                where.Add("txid", jToken["txid"].ToString());
-                where.Add("blockindex", jToken["blockindex"].ToString());
-                MysqlConn.Delete(DataTableName, where);
-            }
-            {
-                MysqlConn.ExecuteDataInsert(DataTableName, slist);
-            }
+            Dictionary<string, string> deleteWhere = new Dictionary<string, string>();
+            deleteWhere.Add("txid", jToken["txid"].ToString());
+            deleteWhere.Add("blockindex", jToken["blockindex"].ToString());
+
+            MysqlConn.ExecuteDataInsertWithCheck(DataTableName, slist, deleteWhere);
 
             Program.Log($"SaveNEP5Transfer {ChainHash} {jToken["blockindex"]} {jToken["txid"]}", Program.LogLevel.Info, ChainHash.ToString());
         }

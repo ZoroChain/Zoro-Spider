@@ -7,8 +7,6 @@ using System.Numerics;
 using System.Globalization;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
-using Zoro.Wallets;
-using System.Linq;
 
 namespace Zoro.Spider
 {
@@ -86,17 +84,12 @@ namespace Zoro.Spider
                 slist.Add(executions["stack"].ToString());
                 slist.Add(executions["notifications"].ToString().Replace(@"[/n/r]", ""));
                 slist.Add(blockHeight.ToString());
+               
+                Dictionary<string, string> deleteWhere = new Dictionary<string, string>();
+                deleteWhere.Add("txid", jToken["txid"].ToString());
+                deleteWhere.Add("blockindex", blockHeight.ToString());
 
-                if (ChainSpider.checkHeight == int.Parse(blockHeight.ToString()))
-                {
-                    Dictionary<string, string> where = new Dictionary<string, string>();
-                    where.Add("txid", jToken["txid"].ToString());
-                    where.Add("blockindex", blockHeight.ToString());
-                    MysqlConn.Delete(DataTableName, where);
-                }
-                {
-                    MysqlConn.ExecuteDataInsert(DataTableName, slist);
-                }
+                MysqlConn.ExecuteDataInsertWithCheck(DataTableName, slist, deleteWhere);                
                
                 Program.Log($"SaveNotify {ChainHash} {jToken["txid"]}", Program.LogLevel.Info, ChainHash.ToString());
 
@@ -113,19 +106,13 @@ namespace Zoro.Spider
                         string method = Encoding.UTF8.GetString(Helper.HexString2Bytes(values[0]["value"].ToString()));
                         string contract = notify["contract"].ToString();
 
-                        if (method == "mintToken")
+                        if (method == "mintToken" && GetSupportedStandard(contract).Contains("NEP-10"))
                         {
-                            string supportedStandard = GetSupportedStandard(contract);
-                            if (supportedStandard.Contains("NEP-10"))
-                            {
-                                nftAddress.Save(contract, UInt160.Parse(values[1]["value"].ToString()).ToAddress(), values[2]["value"].ToString(), values[3] == null ? "" : values[3]["value"].ToString());
-                            }
+                            nftAddress.Save(contract, UInt160.Parse(values[1]["value"].ToString()).ToAddress(), values[2]["value"].ToString(), values[3] == null ? "" : values[3]["value"].ToString());
                         }
-                        if (method == "modifyProperties")
+                        if (method == "modifyProperties" && GetSupportedStandard(contract).Contains("NEP-10"))
                         {
-                            string supportedStandard = GetSupportedStandard(contract);
-                            if (supportedStandard.Contains("NEP-10"))
-                                nftAddress.Update(contract, UInt160.Parse(values[1]["value"].ToString()).ToAddress(), values[2]["value"].ToString());
+                            nftAddress.Update(contract, UInt160.Parse(values[1]["value"].ToString()).ToAddress(), values[2]["value"].ToString());
                         }
                         if (method == "transfer")
                         {

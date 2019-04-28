@@ -304,6 +304,55 @@ namespace Zoro.Spider
             }
         }
 
+        public static int ExecuteDataInsertWithCheck(string tableName, List<string> parameter, Dictionary<string, string> deleteKeys)
+        {
+            MySqlConnection conn = new MySqlConnection(conf);
+
+            try
+            {
+                conn.Open();
+
+                string sql = $"delete from " + tableName + "";
+                if (deleteKeys.Count != 0)
+                    sql += " where";
+                foreach (var dir in deleteKeys)
+                {
+                    sql += " " + dir.Key + "='" + dir.Value + "'";
+                    sql += " and";
+                }
+                if (deleteKeys.Count != 0)
+                    sql = sql.Substring(0, sql.Length - 4);
+                sql += ";";
+
+                sql += $"insert into " + tableName + " values (null,";
+                foreach (string param in parameter)
+                {
+                    sql += "'" + param + "',";
+                }
+                sql = sql.Substring(0, sql.Length - 1);
+                sql += ");";
+                MySqlCommand mc = new MySqlCommand(sql, conn);
+                int count = mc.ExecuteNonQuery();
+
+                return count;
+            }
+            catch (MySqlException e)
+            {
+                Program.Log($"Error when execute insert with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
+                conn.Close();
+                return ExecuteDataInsertWithCheck(tableName, parameter, deleteKeys);
+            }
+            catch (Exception e)
+            {
+                Program.Log($"Error when execute insert with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
+                throw e;
+            }
+            finally
+            {
+                conn.Close();
+            }
+        }
+
         /// <summary>
         /// 修改数据
         /// </summary>
@@ -345,7 +394,8 @@ namespace Zoro.Spider
             }
         }
 
-        public static void Delete(string tableName, Dictionary<string, string> where) {
+        public static void Delete(string tableName, Dictionary<string, string> where)
+        {
             MySqlConnection conn = new MySqlConnection(conf);
             try
             {

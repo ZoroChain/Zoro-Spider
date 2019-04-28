@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
-using System;
 
 namespace Zoro.Spider
 {
@@ -39,12 +38,10 @@ namespace Zoro.Spider
             slist.Add(jObject["tx"].ToString());
             slist.Add((jObject["tx"] as JArray).Count.ToString());
 
-            if (ChainSpider.checkHeight == int.Parse(jObject["index"].ToString())) {
-                Dictionary<string, string> where = new Dictionary<string, string>();
-                where.Add("indexx", jObject["index"].ToString());
-                MysqlConn.Delete(DataTableName, where);
-            }
-            MysqlConn.ExecuteDataInsert(DataTableName, slist);
+            Dictionary<string, string> deleteWhere = new Dictionary<string, string>();
+            deleteWhere.Add("indexx", jObject["index"].ToString());
+
+            MysqlConn.ExecuteDataInsertWithCheck(DataTableName, slist, deleteWhere);
             
             uint blockTime = uint.Parse(jObject["time"].ToString());
 
