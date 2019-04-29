@@ -60,6 +60,15 @@ namespace Zoro.Spider
             
         }
 
+        public string GetSupportedStandard(string contract)
+        {
+            string sql = $"select * from {DataTableName} where hash='{contract}'";
+            DataTable dt = MysqlConn.ExecuteDataSet(sql).Tables[0];
+            if (dt.Rows.Count > 0)
+                return dt.Rows[0]["supportstandard"].ToString();
+            return "Other";
+        }
+
         public async Task<JToken> GetContractState(WebClient wc, Zoro.UInt160 ChainHash, string hash)
         {
             try

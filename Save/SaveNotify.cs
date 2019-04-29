@@ -106,11 +106,11 @@ namespace Zoro.Spider
                         string method = Encoding.UTF8.GetString(Helper.HexString2Bytes(values[0]["value"].ToString()));
                         string contract = notify["contract"].ToString();
 
-                        if (method == "mintToken" && GetSupportedStandard(contract).Contains("NEP-10"))
+                        if (method == "mintToken" && saveContractState.GetSupportedStandard(contract).Contains("NEP-10"))
                         {
                             nftAddress.Save(contract, UInt160.Parse(values[1]["value"].ToString()).ToAddress(), values[2]["value"].ToString(), values[3] == null ? "" : values[3]["value"].ToString());
                         }
-                        if (method == "modifyProperties" && GetSupportedStandard(contract).Contains("NEP-10"))
+                        if (method == "modifyProperties" && saveContractState.GetSupportedStandard(contract).Contains("NEP-10"))
                         {
                             nftAddress.Update(contract, UInt160.Parse(values[1]["value"].ToString()).ToAddress(), values[2]["value"].ToString());
                         }
@@ -146,22 +146,13 @@ namespace Zoro.Spider
                             address_tx.Save(j, blockHeight, blockTime);
                             nep5Transfer.Save(tx);
 
-                            string supportedStandard = GetSupportedStandard(contract);
+                            string supportedStandard = saveContractState.GetSupportedStandard(contract);
                             if (supportedStandard.Contains("NEP-10"))
                                 nftAddress.Save(contract, UInt160.Parse(values[2]["value"].ToString()).ToAddress(), values[3]["value"].ToString());
                         }
                     }
                 }
             }
-        }
-
-        private string GetSupportedStandard(string contract)
-        {
-            string sql = $"select * from {DataTableName} where hash='{contract}'";
-            DataTable dt = MysqlConn.ExecuteDataSet(sql).Tables[0];
-            if (dt.Rows.Count > 0)
-                return dt.Rows[0]["supportstandard"].ToString();
-            return "Other";
         }
     }
 }
