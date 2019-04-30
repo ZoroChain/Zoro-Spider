@@ -26,7 +26,8 @@ namespace Zoro.Spider
             MysqlConn.ExecuteDataInsert(DataTableName, slist);
         }
 
-        public void Save(string contract, string addr, string nfttoken) {
+        public void Save(string contract, string addr, string nfttoken)
+        {
             Dictionary<string, string> selectWhere = new Dictionary<string, string>();
             selectWhere.Add("contract", contract);
             selectWhere.Add("nfttoken", nfttoken);

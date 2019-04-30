@@ -112,7 +112,7 @@ namespace Zoro.Spider
                         }
                         if (method == "modifyProperties" && saveContractState.GetSupportedStandard(contract).Contains("NEP-10"))
                         {
-                            nftAddress.Update(contract, UInt160.Parse(values[1]["value"].ToString()).ToAddress(), values[2]["value"].ToString());
+                            nftAddress.Update(contract, values[1]["value"].ToString(), values[2]["value"].ToString());
                         }
                         if (method == "transfer")
                         {
