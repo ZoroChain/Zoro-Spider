@@ -83,7 +83,7 @@ namespace Zoro.Spider
                 {
                     block.Save(wc, result, height);
                     //每获取一个块做一次高度记录，方便下次启动时做开始高度
-                    listHeight.Save(chainHash.ToString(), height.ToString());
+                    listHeight.Save(chainHash.ToString(), height);
                     return height + 1;
                 }
             }

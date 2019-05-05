@@ -281,10 +281,7 @@ namespace Zoro.Spider
                 mysql = mysql.Substring(0, mysql.Length - 1);
                 mysql += ");";
                 MySqlCommand mc = new MySqlCommand(mysql, conn);
-                int count = mc.ExecuteNonQuery();
-
-                //TimeSpan span = DateTime.Now - dt;
-                //Program.Log($"Execute Insert {tableName} time:{span:hh\\:mm\\:ss\\.fff}", Program.LogLevel.Warning);
+                int count = mc.ExecuteNonQuery();             
 
                 return count;
             }
@@ -292,6 +289,34 @@ namespace Zoro.Spider
                 Program.Log($"Error when execute insert with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
                 conn.Close();
                 return ExecuteDataInsert(tableName, parameter);
+            }
+            catch (Exception e)
+            {
+                Program.Log($"Error when execute insert with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
+                throw e;
+            }
+            finally
+            {
+                conn.Close();
+            }
+        }
+
+        public static int ExecuteDataInsert(string tableName, string sql)
+        {
+            MySqlConnection conn = new MySqlConnection(conf);
+
+            try
+            {                
+                MySqlCommand mc = new MySqlCommand(sql, conn);
+                int count = mc.ExecuteNonQuery();
+              
+                return count;
+            }
+            catch (MySqlException e)
+            {
+                Program.Log($"Error when execute insert with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
+                conn.Close();
+                return ExecuteDataInsert(tableName, sql);
             }
             catch (Exception e)
             {

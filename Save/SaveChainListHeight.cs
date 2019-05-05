@@ -17,21 +17,21 @@ namespace Zoro.Spider
             return true;
         }
 
-        public void Save(string chainHash, string height) {
-            var dir = new Dictionary<string, string>();
-            dir.Add("chainhash", chainHash);
-            DataTable dt = MysqlConn.ExecuteDataSet(DataTableName, dir).Tables[0];
-            if (dt.Rows.Count == 0)
+        public void Save(string chainHash, uint height)
+        {            
+            if (height == 0)
             {
                 var list = new List<string>();
                 list.Add(chainHash);
-                list.Add(height);
+                list.Add(height.ToString());
                 MysqlConn.ExecuteDataInsert(DataTableName, list);
             }
             else
             {
+                var dir = new Dictionary<string, string>();
+                dir.Add("chainhash", chainHash);
                 var set = new Dictionary<string, string>();
-                set.Add("chainheight", height);
+                set.Add("chainheight", height.ToString());
                 MysqlConn.Update(DataTableName, set, dir);
             }
         }
