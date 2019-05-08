@@ -38,7 +38,8 @@ namespace Zoro.Spider
             }
             scriptMethods.Clear();
             Op[] op = Avm2Asm.Trans(script.HexToBytes());
-            for (int i = 0; i < op.Length; i++) {
+            for (int i = 0; i < op.Length; i++)
+            {
                 if (op[i].code == OpCode.APPCALL)
                 {
                     string method = Encoding.Default.GetString(op[i - 1].paramData);

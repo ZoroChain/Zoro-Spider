@@ -90,7 +90,7 @@ namespace Zoro.Spider
             catch (Exception e)
             {
                 Program.Log($"error occured when call getblock {height} {chainHash}, reason:{e.Message}", Program.LogLevel.Error);
-                //throw e;
+                Thread.Sleep(3000);
                 return GetBlock(height);
             }
 

@@ -19,10 +19,6 @@ namespace Zoro.Spider
 
         public void Save(JToken jObject)
         {
-			JObject hashstateresult = new JObject();
-
-			hashstateresult["result"] = jObject["result"];
-
 			List<string> slist = new List<string>();
 
 			slist.Add(jObject["version"].ToString());

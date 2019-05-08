@@ -32,30 +32,31 @@ namespace Zoro.Spider
         public static void CreateTable(string type, string tableName)
         {
             string createSql = "";
-            switch (type) {
+            switch (type)
+            {
                 case TableType.Block:
-                    createSql = "create table "+tableName+" (id bigint(20) primary key auto_increment, hash varchar(255), size varchar(255), version tinyint(3)," +
+                    createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, hash varchar(255), size varchar(255), version tinyint(3)," +
                 " previousblockhash varchar(255), merkleroot varchar(255)," +
                 " time int(11), indexx int(11), nonce varchar(255), nextconsensus varchar(255), script varchar(2048), tx longtext, txcount varchar(45))";
                     break;
                 case TableType.Address:
-                    createSql = "create table "+tableName+" (id int(11) primary key auto_increment, addr varchar(255)," +
+                    createSql = "create table " + tableName + " (id int(11) primary key auto_increment, addr varchar(255)," +
                 " firstuse varchar(255), lastuse varchar(255), txcount int(11))";
                     break;
                 case TableType.Address_tx:
-                    createSql = "create table "+tableName+" (id int(11) primary key auto_increment, addr varchar(255)," +
+                    createSql = "create table " + tableName + " (id int(11) primary key auto_increment, addr varchar(255)," +
                 " txid varchar(255), blockindex int(11), blocktime varchar(255))";
                     break;
                 case TableType.Transaction:
-                    createSql = "create table "+tableName+" (id int(11) primary key auto_increment, txid varchar(255)," +
+                    createSql = "create table " + tableName + " (id int(11) primary key auto_increment, txid varchar(255)," +
                 " size int(11), type varchar(45), version tinyint(3), attributes varchar(2048)," +
                 " sys_fee int(11), scripts varchar(2048), nonce varchar(255), blockheight varchar(45), gas_limit varchar(45), gas_price varchar(45), account varchar(255))";
                     break;
                 case TableType.Notify:
-                    createSql = "create table "+tableName+" (id bigint(20) primary key auto_increment, txid varchar(255), vmstate varchar(255), gas_consumed varchar(255)," +
+                    createSql = "create table " + tableName + " (id bigint(20) primary key auto_increment, txid varchar(255), vmstate varchar(255), gas_consumed varchar(255)," +
                 " stack varchar(2048), notifications longtext, blockindex int(11))";
                     break;
-                case TableType.NEP5Asset:                    
+                case TableType.NEP5Asset:
                     createSql = "create table " + tableName + " (id int(11) primary key auto_increment, assetid varchar(150), totalsupply varchar(45)," +
                 " name varchar(150), symbol varchar(150), decimals varchar(45))";
                     break;
@@ -100,7 +101,7 @@ namespace Zoro.Spider
                     {
                         cmd.ExecuteNonQuery();
                     }
-                    
+
                     Program.Log("建表成功 " + tableName, Program.LogLevel.Info);
                 }
                 catch (Exception e)
@@ -109,14 +110,15 @@ namespace Zoro.Spider
                     throw e;
                 }
                 finally
-                {                   
+                {
                     conn.Close();
                     AlterTable(type, tableName);
                 }
             }
         }
 
-        public static void AlterTable(string type, string tableName) {
+        public static void AlterTable(string type, string tableName)
+        {
             string alterSql = "";
             switch (type)
             {
@@ -222,7 +224,7 @@ namespace Zoro.Spider
             try
             {
                 conn.Open();
-                
+
                 MySqlDataAdapter adapter = new MySqlDataAdapter(sql, conf);
                 DataSet ds = new DataSet();
                 adapter.Fill(ds);
@@ -245,11 +247,11 @@ namespace Zoro.Spider
             MySqlConnection conn = new MySqlConnection(conf);
             try
             {
-                conn.Open();                
+                conn.Open();
 
                 MySqlCommand cmd = new MySqlCommand(sql, conn);
                 MySqlDataReader reader = cmd.ExecuteReader();
-                bool result = reader.Read();                
+                bool result = reader.Read();
 
                 return result;
             }
@@ -281,11 +283,12 @@ namespace Zoro.Spider
                 mysql = mysql.Substring(0, mysql.Length - 1);
                 mysql += ");";
                 MySqlCommand mc = new MySqlCommand(mysql, conn);
-                int count = mc.ExecuteNonQuery();             
+                int count = mc.ExecuteNonQuery();
 
                 return count;
             }
-            catch (MySqlException e) {
+            catch (MySqlException e)
+            {
                 Program.Log($"Error when execute insert with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
                 conn.Close();
                 return ExecuteDataInsert(tableName, parameter);
@@ -306,10 +309,10 @@ namespace Zoro.Spider
             MySqlConnection conn = new MySqlConnection(conf);
 
             try
-            {                
+            {
                 MySqlCommand mc = new MySqlCommand(sql, conn);
                 int count = mc.ExecuteNonQuery();
-              
+
                 return count;
             }
             catch (MySqlException e)
@@ -408,7 +411,7 @@ namespace Zoro.Spider
                 int count = command.ExecuteNonQuery();
                 return count;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Program.Log($"Error when execute update with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
                 throw e;
@@ -450,7 +453,8 @@ namespace Zoro.Spider
             }
         }
 
-        public static void SaveAndUpdataHashList(string table, string hashlist) {
+        public static void SaveAndUpdataHashList(string table, string hashlist)
+        {
             var dir = new Dictionary<string, string>();
             DataTable dt = ExecuteDataSet(table, dir).Tables[0];
             if (dt.Rows.Count == 0)
@@ -459,7 +463,8 @@ namespace Zoro.Spider
                 list.Add(hashlist);
                 ExecuteDataInsert(table, list);
             }
-            else {
+            else
+            {
                 var set = new Dictionary<string, string>();
                 set.Add("hashlist", hashlist);
                 Update(table, set, dir);
@@ -489,7 +494,8 @@ namespace Zoro.Spider
         }
     }
 
-    class TableType {
+    class TableType
+    {
         public const string Block = "block";
         public const string Address = "address";
         public const string Address_tx = "address_tx";

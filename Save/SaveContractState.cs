@@ -23,7 +23,8 @@ namespace Zoro.Spider
             return true;
         }
 
-        public async void SaveAsync(string hash) {
+        public async void SaveAsync(string hash)
+        {
             JToken result = null;
             try
             {
@@ -100,16 +101,21 @@ namespace Zoro.Spider
                 var result = await ZoroHelper.InvokeScript(sb.ToArray(), ChainHash.ToString());
 
                 jObject = JObject.Parse(result);
-                JArray jStack = jObject["result"]["stack"] as JArray;
 
-                if (jStack[0]["value"].ToString() == "") {
-                    return "";
+                if (jObject["result"]["stack"] != null)
+                {
+                    JArray jStack = jObject["result"]["stack"] as JArray;
+
+                    if (jStack.Count > 0 && jStack[0]["value"] != null)
+                    {
+                        return Encoding.UTF8.GetString(Helper.HexString2Bytes(jStack[0]["value"].ToString()));
+                    }
                 }
-                string supportedStandards = Encoding.UTF8.GetString(Helper.HexString2Bytes(jStack[0]["value"].ToString()));
-                return supportedStandards;
+                return "";
             }
             catch (Exception e)
             {
+                Program.Log($"error occured when GetSupportedStandards contract: {Contract}, reason:{e.Message}", Program.LogLevel.Error);
                 return await GetNEP5Asset(Contract);
             }
         }
