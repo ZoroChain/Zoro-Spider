@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 
 namespace Zoro.Spider
@@ -11,31 +12,25 @@ namespace Zoro.Spider
             InitDataTable(TableType.Address_Asset);
         }
 
+        public List<string> AddressAssetList = new List<string>();
+
         public override bool CreateTable(string name)
         {
             MysqlConn.CreateTable(TableType.Address_Asset, name);
             return true;
+        }       
+
+        public string GetInsertSql(List<string> slist)
+        {
+            return MysqlConn.InsertSqlBuilder(DataTableName, slist);
         }
 
-        public void Save(string addr, string asset, string script)
+        public bool AddressAssetIsExisted(Dictionary<string, string> selectWhere)
         {
-            Dictionary<string, string> selectWhere = new Dictionary<string, string>();
-            selectWhere.Add("addr", addr);
-            selectWhere.Add("asset", asset);
             DataTable dt = MysqlConn.ExecuteDataSet(DataTableName, selectWhere).Tables[0];
-            if (dt.Rows.Count == 0)
-            {
-                string type = "";
-                if (script.EndsWith(Helper.ZoroNativeNep5Call))
-                    type = "NativeNep5";
-                else
-                    type = "Nep5";
-                List<string> slist = new List<string>();
-                slist.Add(addr);
-                slist.Add(asset);
-                slist.Add(type);
-                MysqlConn.ExecuteDataInsert(DataTableName, slist);
-            }           
+            if (dt.Rows.Count > 0)
+                return true;
+            return false;
         }
     }
 }

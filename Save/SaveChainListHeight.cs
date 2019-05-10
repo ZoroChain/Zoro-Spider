@@ -17,14 +17,14 @@ namespace Zoro.Spider
             return true;
         }
 
-        public void Save(string chainHash, uint height)
+        public string GetUpdateHeightSql(string chainHash, uint height)
         {            
             if (height == 0)
             {
                 var list = new List<string>();
                 list.Add(chainHash);
                 list.Add(height.ToString());
-                MysqlConn.ExecuteDataInsert(DataTableName, list);
+                return MysqlConn.InsertSqlBuilder(DataTableName, list);
             }
             else
             {
@@ -32,7 +32,7 @@ namespace Zoro.Spider
                 dir.Add("chainhash", chainHash);
                 var set = new Dictionary<string, string>();
                 set.Add("chainheight", height.ToString());
-                MysqlConn.Update(DataTableName, set, dir);
+                return MysqlConn.UpdateSqlBuilder(DataTableName, set, dir);
             }
         }
 
@@ -47,7 +47,7 @@ namespace Zoro.Spider
             }
             else
             {
-                return uint.Parse(dt.Rows[0]["chainheight"].ToString());
+                return uint.Parse(dt.Rows[0]["chainheight"].ToString()) + 1;
             }
         }
 

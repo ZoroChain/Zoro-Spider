@@ -2,6 +2,7 @@
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using MySql.Data.MySqlClient;
 using Newtonsoft.Json.Linq;
 
 namespace Zoro.Spider
@@ -62,6 +63,7 @@ namespace Zoro.Spider
             catch (Exception e)
             {
                 Program.Log($"error occured when call getblockcount {chainHash}, reason:{e.Message}", Program.LogLevel.Error);
+                Thread.Sleep(3000);
                 return GetBlockCount();
             }
 
@@ -81,10 +83,53 @@ namespace Zoro.Spider
 
                 if (result != null)
                 {
-                    block.Save(wc, result, height);
-                    //每获取一个块做一次高度记录，方便下次启动时做开始高度
-                    listHeight.Save(chainHash.ToString(), height);
-                    return height + 1;
+                    MySqlConnection myConnection = new MySqlConnection(Settings.Default.MysqlConfig);
+                    myConnection.Open();
+
+                    MySqlCommand myCommand = myConnection.CreateCommand();
+                    MySqlTransaction myTrans = myConnection.BeginTransaction();
+
+                    myCommand.Connection = myConnection;
+                    myCommand.Transaction = myTrans;
+
+                    try
+                    {
+                        string sql = block.GetBlockSqlText(wc, result, height);
+
+                        myCommand.CommandText = sql;
+                        myCommand.ExecuteNonQuery();
+
+                        myCommand.CommandText = listHeight.GetUpdateHeightSql(chainHash.ToString(), height);
+                        myCommand.ExecuteNonQuery();
+
+                        myTrans.Commit();
+
+                        //Program.Log($"SaveBlock {chainHash} height:{height}", Program.LogLevel.Warning, chainHash.ToString());
+
+                        height = height + 1;
+                    }
+                    catch (Exception e)
+                    {
+                        try
+                        {
+                            myTrans.Rollback();
+                        }
+                        catch (Exception ex)
+                        {
+                            if (myTrans.Connection != null)
+                            {
+                                Console.WriteLine("An exception of type " + ex.GetType() + " when roll back the transaction.");
+                                throw ex;
+                            }
+                        }
+                        Console.WriteLine("An exception of type " + e.GetType() + " was encountered while inserting the data.");
+                        throw e;
+                    }
+                    finally
+                    {
+                        myConnection.Close();
+                    }
+
                 }
             }
             catch (Exception e)

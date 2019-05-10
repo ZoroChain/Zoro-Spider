@@ -1,37 +1,45 @@
 ﻿using System;
 using System.Net;
 using System.Text;
-using System.Data;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Globalization;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
+using System.Threading;
+using System.Data;
 
 namespace Zoro.Spider
 {
     class SaveNotify : SaveBase
     {
-        private SaveAddress address;
-        private SaveAddressAsset addressAsset;
         private SaveAddressTransaction address_tx;
-        private SaveNEP5Asset nep5Asset;
         private SaveNEP5Transfer nep5Transfer;
         private SaveNFTAddress nftAddress;
-        private SaveContractState saveContractState;
+
+        private SaveAddress saveAddress;
+        private SaveAddressAsset addressAsset;
+        private SaveNEP5Asset nep5Asset;
 
         public SaveNotify(UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.Notify);
 
-            address = new SaveAddress(chainHash);
-            addressAsset = new SaveAddressAsset(chainHash);
             address_tx = new SaveAddressTransaction(chainHash);
-            nep5Asset = new SaveNEP5Asset(chainHash);
             nep5Transfer = new SaveNEP5Transfer(chainHash);
             nftAddress = new SaveNFTAddress(chainHash);
-            saveContractState = new SaveContractState(chainHash);
+
+            saveAddress = new SaveAddress(chainHash);
+            addressAsset = new SaveAddressAsset(chainHash);
+            nep5Asset = new SaveNEP5Asset(chainHash);
+            nep5Asset.InitNep5List();
+        }
+
+        public void ListClear()
+        {
+            saveAddress.AddressTxCountDict.Clear();
+            addressAsset.AddressAssetList.Clear();
         }
 
         public override bool CreateTable(string name)
@@ -40,7 +48,8 @@ namespace Zoro.Spider
             return true;
         }
 
-        public async Task<JToken> GetApplicationlog(WebClient wc, Zoro.UInt160 ChainHash, string txid, uint blockHeight) {
+        public async Task<JToken> GetApplicationlog(WebClient wc, Zoro.UInt160 ChainHash, string txid, uint blockHeight)
+        {
             try
             {
                 var getUrl = $"{Settings.Default.RpcUrl}/?jsonrpc=2.0&id=1&method=getapplicationlog&params=['{ChainHash}','{txid}']";
@@ -52,49 +61,48 @@ namespace Zoro.Spider
             catch (WebException e)
             {
                 Program.Log($"error occured when call getapplicationlog, chain:{ChainHash} height:{blockHeight}, reason:{e.Message}", Program.LogLevel.Error);
-                //throw e;
+                Thread.Sleep(3000);
                 return await GetApplicationlog(wc, ChainHash, txid, blockHeight);
             }
         }
 
-        public async void Save(JToken jToken, uint blockHeight, uint blockTime, string script)
+        public string GetNotifySqlText(JToken jToken, uint blockHeight, uint blockTime, Dictionary<string, string> contractDict)
         {
+            string sql = "";
             JToken result = null;
             JToken executions = null;
+            string script = jToken["script"].ToString();
+            string txid = jToken["txid"].ToString();
+            WebClient wc = new WebClient();
+            wc.Proxy = null;
             try
             {
-                WebClient wc = new WebClient();
-                wc.Proxy = null;
-                result = await GetApplicationlog(wc, ChainHash, jToken["txid"].ToString(), blockHeight);
+                result = GetApplicationlog(wc, ChainHash, txid, blockHeight).Result;
                 if (result != null)
-                executions = result["executions"].First as JToken;
+                    executions = result["executions"].First as JToken;
             }
             catch (Exception e)
             {
-                Program.Log($"error occured when call getapplicationlog, chain:{ChainHash} txid:{jToken["txid"].ToString()}, reason:{e.Message}", Program.LogLevel.Error);
-                throw e;
+                Program.Log($"error occured when call getapplicationlog, chain:{ChainHash} txid:{txid}, reason:{e.Message}", Program.LogLevel.Error);
+                Thread.Sleep(3000);
+                result = GetApplicationlog(wc, ChainHash, txid, blockHeight).Result;
             }
 
             if (result != null && executions != null)
             {
                 List<string> slist = new List<string>();
-                slist.Add(jToken["txid"].ToString());
+                slist.Add(txid);
                 slist.Add(executions["vmstate"].ToString());
                 slist.Add(executions["gas_consumed"].ToString());
                 slist.Add(executions["stack"].ToString());
                 slist.Add(executions["notifications"].ToString().Replace(@"[/n/r]", ""));
                 slist.Add(blockHeight.ToString());
-               
-                Dictionary<string, string> deleteWhere = new Dictionary<string, string>();
-                deleteWhere.Add("txid", jToken["txid"].ToString());
-                deleteWhere.Add("blockindex", blockHeight.ToString());
 
-                MysqlConn.ExecuteDataInsertWithCheck(DataTableName, slist, deleteWhere);                
-               
-                Program.Log($"SaveNotify {ChainHash} {jToken["txid"]}", Program.LogLevel.Info, ChainHash.ToString());
+                sql += MysqlConn.InsertSqlBuilder(DataTableName, slist);                
 
-                if (executions["vmstate"].ToString().Contains("FAULT")) return;
-                
+                if (executions["vmstate"].ToString().Contains("FAULT"))
+                    return sql;
+
                 JToken notifications = executions["notifications"];
 
                 foreach (JObject notify in notifications)
@@ -106,53 +114,139 @@ namespace Zoro.Spider
                         string method = Encoding.UTF8.GetString(Helper.HexString2Bytes(values[0]["value"].ToString()));
                         string contract = notify["contract"].ToString();
 
-                        if (method == "mintToken" && saveContractState.GetSupportedStandard(contract).Contains("NEP-10"))
+                        if (method == "mintToken" && contractDict[contract].Contains("NEP-10"))
                         {
-                            nftAddress.Save(contract, UInt160.Parse(values[1]["value"].ToString()).ToAddress(), values[2]["value"].ToString(), values[3] == null ? "" : values[3]["value"].ToString());
+                            sql += nftAddress.GetInsertSql(contract, UInt160.Parse(values[1]["value"].ToString()).ToAddress(), values[2]["value"].ToString(), values[3] == null ? "" : values[3]["value"].ToString());
                         }
-                        if (method == "modifyProperties" && saveContractState.GetSupportedStandard(contract).Contains("NEP-10"))
+                        if (method == "modifyProperties" && contractDict[contract].Contains("NEP-10"))
                         {
-                            nftAddress.Update(contract, values[1]["value"].ToString(), values[2]["value"].ToString());
+                            sql += nftAddress.GetUpdateSql(contract, values[1]["value"].ToString(), values[2]["value"].ToString());
                         }
                         if (method == "transfer")
                         {
-                            JObject nep5 = new JObject();
-                            nep5["assetid"] = contract;
-
-                            nep5Asset.Save(nep5, script);
-
-                            //存储Nep5Transfer内容
+                            //存储 Transfer 内容
                             JObject tx = new JObject();
                             tx["blockindex"] = blockHeight;
-                            tx["txid"] = jToken["txid"].ToString();
+                            tx["txid"] = txid;
                             tx["n"] = 0;
                             tx["asset"] = contract;
                             tx["from"] = values[1]["value"].ToString() == "" ? "" : UInt160.Parse(values[1]["value"].ToString()).ToAddress();
                             tx["to"] = UInt160.Parse(values[2]["value"].ToString()).ToAddress();
-                            if (values[3]["type"].ToString() == "ByteArray")
+                            tx["value"] = values[3]["type"].ToString() == "ByteArray" ? new BigInteger(Helper.HexString2Bytes(values[3]["value"].ToString())).ToString() :
+                            tx["value"] = BigInteger.Parse(values[3]["value"].ToString(), NumberStyles.AllowHexSpecifier).ToString();
+
+                            sql += address_tx.GetAddressTxSql(tx["to"].ToString(), tx["txid"].ToString(), blockHeight, blockTime);
+                            sql += nep5Transfer.GetNep5TransferSql(tx);
+
+                            if (contractDict.ContainsKey(contract) && contractDict[contract].Contains("NEP-10"))
                             {
-                                tx["value"] = new BigInteger(Helper.HexString2Bytes(values[3]["value"].ToString())).ToString();
+                                sql += nftAddress.GetTransferSql(contract, UInt160.Parse(values[2]["value"].ToString()).ToAddress(), values[3]["value"].ToString());
                             }
-                            else
-                            {
-                                tx["value"] = BigInteger.Parse(values[3]["value"].ToString(), NumberStyles.AllowHexSpecifier).ToString();
-                            }                           
-                            JObject j = new JObject();
-                            j["address"] = tx["to"].ToString();
-                            j["txid"] = tx["txid"].ToString();
 
-                            address.Save(j, blockHeight, blockTime);
-                            addressAsset.Save(tx["to"].ToString(), contract, script);
-                            address_tx.Save(j, blockHeight, blockTime);
-                            nep5Transfer.Save(tx);
-
-                            string supportedStandard = saveContractState.GetSupportedStandard(contract);
-                            if (supportedStandard.Contains("NEP-10"))
-                                nftAddress.Save(contract, UInt160.Parse(values[2]["value"].ToString()).ToAddress(), values[3]["value"].ToString());
+                            sql += GetNep5AssetSql(contract, script);
+                            sql += GetAddressSql(tx["to"].ToString(), blockTime);
+                            sql += GetAddressAssetSql(tx["to"].ToString(), contract, script);
                         }
                     }
                 }
             }
+
+            return sql;
         }
+
+        public string GetNep5AssetSql(string contract, string script)
+        {
+            if (nep5Asset.Nep5List.Contains(contract))
+                return "";
+
+            nep5Asset.Nep5List.Add(contract);
+
+            if (script.EndsWith(Helper.ZoroNativeNep5Call))
+                return nep5Asset.GetNativeNEP5Asset(UInt160.Parse(contract));
+            else
+                return nep5Asset.GetNEP5Asset(UInt160.Parse(contract));
+        }
+
+        public string GetAddressSql(string address, uint blockTime)
+        {                  
+            string sql = "";
+            DataTable dt = saveAddress.GetAddressDt(address);
+
+            if (dt.Rows.Count == 0)
+            {
+                if (!saveAddress.AddressTxCountDict.ContainsKey(address))
+                {
+                    List<string> slist = new List<string>();
+                    slist.Add(address);
+                    slist.Add(blockTime.ToString());
+                    slist.Add(blockTime.ToString());
+                    slist.Add("1");
+                    sql = saveAddress.GetInsertSql(slist);
+
+                    saveAddress.AddressTxCountDict[address] = 1;
+                }
+                else
+                {
+                    Dictionary<string, string> dirs = new Dictionary<string, string>();
+                    dirs.Add("lastuse", blockTime.ToString());
+                    dirs.Add("txcount", (saveAddress.AddressTxCountDict[address] + 1).ToString());
+                    Dictionary<string, string> where = new Dictionary<string, string>();
+                    where.Add("addr", address);
+                    sql = saveAddress.GetUpdateSql(dirs, where);
+
+                    saveAddress.AddressTxCountDict[address]++;
+                }
+            }
+
+            else
+            {
+                if (!saveAddress.AddressTxCountDict.ContainsKey(address))
+                {
+                    saveAddress.AddressTxCountDict[address] = int.Parse(dt.Rows[0]["txcount"].ToString());
+                }
+
+                Dictionary<string, string> dirs = new Dictionary<string, string>();
+                dirs.Add("lastuse", blockTime.ToString());
+                dirs.Add("txcount", (saveAddress.AddressTxCountDict[address] + 1).ToString());
+                Dictionary<string, string> where = new Dictionary<string, string>();
+                where.Add("addr", address);
+                sql = saveAddress.GetUpdateSql(dirs, where);
+
+                saveAddress.AddressTxCountDict[address]++;
+            }
+
+            return sql;
+        }
+
+        public string GetAddressAssetSql(string addr, string asset, string script)
+        {
+            if (addressAsset.AddressAssetList.Contains(addr + asset))
+                return "";
+
+            string sql = "";
+            Dictionary<string, string> selectWhere = new Dictionary<string, string>();
+            selectWhere.Add("addr", addr);
+            selectWhere.Add("asset", asset);
+
+            bool isExisted = addressAsset.AddressAssetIsExisted(selectWhere);
+
+            if (!isExisted)
+            {
+                string type = "";
+                if (script.EndsWith(Helper.ZoroNativeNep5Call))
+                    type = "NativeNep5";
+                else
+                    type = "Nep5";
+                List<string> slist = new List<string>();
+                slist.Add(addr);
+                slist.Add(asset);
+                slist.Add(type);
+                sql = addressAsset.GetInsertSql(slist);
+            }
+
+            addressAsset.AddressAssetList.Add(addr + asset);
+            return sql;
+        }
+
     }
 }

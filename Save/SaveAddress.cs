@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Data;
 
@@ -18,31 +19,24 @@ namespace Zoro.Spider
             return true;
         }
 
-        public void Save(JToken jObject, uint blockHeight, uint blockTime)
-        {           
-            Dictionary<string, string> selectWhere = new Dictionary<string, string>();
+        //public List<string> AddressList = new List<string>();
+        public Dictionary<string,int> AddressTxCountDict = new Dictionary<string, int>();        
 
-            string sql = $"select * from {DataTableName} where addr = '{jObject["address"].ToString()}'";
+        public string GetInsertSql(List<string> slist)
+        {
+            return MysqlConn.InsertSqlBuilder(DataTableName, slist);
+        }
+
+        public string GetUpdateSql(Dictionary<string, string> dirs, Dictionary<string, string> where)
+        {
+            return MysqlConn.UpdateSqlBuilder(DataTableName, dirs, where);
+        }        
+
+        public DataTable GetAddressDt(string address)
+        {
+            string sql = $"select * from {DataTableName} where addr = '{address}'";
             DataTable dt = MysqlConn.ExecuteDataSet(sql).Tables[0];
-
-            if (dt.Rows.Count != 0)
-            {
-                Dictionary<string, string> dirs = new Dictionary<string, string>();
-                dirs.Add("lastuse", blockTime.ToString());
-                dirs.Add("txcount", (int.Parse(dt.Rows[0]["txcount"].ToString()) + 1) + "");
-                Dictionary<string, string> where = new Dictionary<string, string>();
-                where.Add("addr", dt.Rows[0]["addr"].ToString());
-                MysqlConn.Update(DataTableName, dirs, where);
-            }
-            else
-            {
-                List<string> slist = new List<string>();
-                slist.Add(jObject["address"].ToString());
-                slist.Add(blockTime.ToString());
-                slist.Add(blockTime.ToString());
-                slist.Add("1");
-                MysqlConn.ExecuteDataInsert(DataTableName, slist);
-            }
+            return dt;
         }
     }
 }

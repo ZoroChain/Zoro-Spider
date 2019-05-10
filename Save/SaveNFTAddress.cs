@@ -16,33 +16,36 @@ namespace Zoro.Spider
             return true;
         }
 
-        public void Save(string contract, string addr, string nfttoken, string properties)
+        public string GetInsertSql(string contract, string addr, string nfttoken, string properties)
         {
+            string sql = "";
             List<string> slist = new List<string>();
             slist.Add(contract);
             slist.Add(addr);
             slist.Add(nfttoken);
             slist.Add(properties);
-            MysqlConn.ExecuteDataInsert(DataTableName, slist);
+            sql = MysqlConn.InsertSqlBuilder(DataTableName, slist);
+            return sql;
         }
 
-        public void Save(string contract, string addr, string nfttoken)
+        public string GetTransferSql(string contract, string addr, string nfttoken)
         {
             Dictionary<string, string> selectWhere = new Dictionary<string, string>();
             selectWhere.Add("contract", contract);
             selectWhere.Add("nfttoken", nfttoken);
             Dictionary<string, string> dirs = new Dictionary<string, string>();
             dirs.Add("addr", addr);
-            MysqlConn.Update(DataTableName, dirs, selectWhere);
+            return MysqlConn.UpdateSqlBuilder(DataTableName, dirs, selectWhere);
         }
 
-        public void Update(string contract, string nfttoken, string properties) {
+        public string GetUpdateSql(string contract, string nfttoken, string properties)
+        {
             Dictionary<string, string> selectWhere = new Dictionary<string, string>();
             selectWhere.Add("contract", contract);
             selectWhere.Add("nfttoken", nfttoken);
             Dictionary<string, string> dirs = new Dictionary<string, string>();
             dirs.Add("properties", properties);
-            MysqlConn.Update(DataTableName, dirs, selectWhere);
+            return MysqlConn.UpdateSqlBuilder(DataTableName, dirs, selectWhere);
         }
     }
 }

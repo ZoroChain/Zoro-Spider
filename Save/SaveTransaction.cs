@@ -1,22 +1,24 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Newtonsoft.Json.Linq;
 
 namespace Zoro.Spider
 {
     class SaveTransaction : SaveBase
-    {
-        //private SaveUTXO utxo;
-        private SaveAsset asset;
+    {        
         private SaveNotify notify;
         private SaveTxScriptMethod txScriptMethod;
+        private SaveContractState contractState;
 
         public SaveTransaction(UInt160 chainHash)
             : base(chainHash)
         {
             InitDataTable(TableType.Transaction);
 
-            //utxo = new SaveUTXO(chainHash);
-            asset = new SaveAsset(chainHash);
+            contractState = new SaveContractState(chainHash);
+            contractState.InitContractDict();
+
             notify = new SaveNotify(chainHash);
             txScriptMethod = new SaveTxScriptMethod(chainHash);
         }
@@ -27,8 +29,9 @@ namespace Zoro.Spider
             return true;
         }
 
-        public void Save(JToken jObject, uint blockHeight, uint blockTime)
+        public string GetTranSqlText(JToken jObject, uint blockHeight, uint blockTime)
         {
+            string sql = "";
             List<string> slist = new List<string>();
             slist.Add(jObject["txid"].ToString());
             slist.Add(jObject["size"].ToString());
@@ -44,21 +47,76 @@ namespace Zoro.Spider
             slist.Add(ZoroHelper.GetAddressFromScriptHash(UInt160.Parse(jObject["account"].ToString())));
 
             if (jObject["script"] != null)
-                txScriptMethod.Save(jObject["script"].ToString(), blockHeight, jObject["txid"].ToString());
+            {
+                sql += GetScriptMethodSql(jObject["script"].ToString(), blockHeight, jObject["txid"].ToString());
+            } 
 
-            Dictionary<string, string> deleteWhere = new Dictionary<string, string>();
-            deleteWhere.Add("txid", jObject["txid"].ToString());
-            deleteWhere.Add("blockheight", blockHeight.ToString());
-
-            MysqlConn.ExecuteDataInsertWithCheck(DataTableName, slist, deleteWhere);
-
-            Program.Log($"SaveTransaction {ChainHash} {blockHeight} {jObject["txid"].ToString()}", Program.LogLevel.Info, ChainHash.ToString());
+            sql += MysqlConn.InsertSqlBuilder(DataTableName, slist);           
 
             if (jObject["type"].ToString() == "InvocationTransaction")
             {
-                notify.Save(jObject, blockHeight, blockTime, jObject["script"].ToString());
-                //Thread.Sleep(20);
+                sql += notify.GetNotifySqlText(jObject, blockHeight, blockTime, contractState.ContractDict);                
             }
+
+            return sql;
+        }
+
+        public string GetScriptMethodSql(string script, uint blockHeight, string txid)
+        {
+            string sql = "";
+            if (script == null) return "";
+
+            Op[] op = Avm2Asm.Trans(script.HexToBytes());
+            for (int i = 0; i < op.Length; i++)
+            {
+                if (op[i].code == OpCode.APPCALL)
+                {
+                    string method = Encoding.Default.GetString(op[i - 1].paramData);
+                    string contract = op[i].paramData.Reverse().ToHexString();
+                    sql += AddMethod(txid, "AppCall", method, contract, blockHeight);
+                }
+                else if (op[i].code == OpCode.SYSCALL)
+                {
+                    string method = "";
+                    string contract = Encoding.Default.GetString(op[i].paramData);
+                    if (contract.IndexOf("Create") != -1)
+                    {
+                        method = "Create";
+                    }
+                    else
+                    {
+                        method = Encoding.Default.GetString(op[i - 1].paramData);
+                    }
+                    sql += AddMethod(txid, "SysCall", method, contract, blockHeight);
+                }
+            }
+            return sql;
+        }
+
+        private string AddMethod(string txid, string code, string method, string contract, uint blockHeight)
+        {
+            string sql = "";
+            List<string> slist = new List<string>();
+            slist.Add(txid);
+            slist.Add(code);
+            slist.Add(method);
+            slist.Add(contract);
+            slist.Add(blockHeight.ToString());
+
+            //长度为 40，说明是调用合约，获取合约信息
+            if (contract.Length >= 40)
+            {
+                sql += contractState.GetContractInfoSql(contract, ref contractState.ContractDict);
+            }
+
+            sql += txScriptMethod.GetInsertSql(slist);
+
+            return sql;
+        }
+
+        public void ListClear()
+        {
+            notify.ListClear();
         }
         
     }

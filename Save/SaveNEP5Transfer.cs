@@ -17,7 +17,7 @@ namespace Zoro.Spider
             return true;
         }
 
-        public void Save(JToken jToken)
+        public string GetNep5TransferSql(JToken jToken)
         {
             List<string> slist = new List<string>();
             slist.Add(jToken["blockindex"].ToString());
@@ -27,14 +27,9 @@ namespace Zoro.Spider
             slist.Add(jToken["from"].ToString());
             slist.Add(jToken["to"].ToString());
             slist.Add(jToken["value"].ToString());
-
-            Dictionary<string, string> deleteWhere = new Dictionary<string, string>();
-            deleteWhere.Add("txid", jToken["txid"].ToString());
-            deleteWhere.Add("blockindex", jToken["blockindex"].ToString());
-
-            MysqlConn.ExecuteDataInsertWithCheck(DataTableName, slist, deleteWhere);
-
-            Program.Log($"SaveNEP5Transfer {ChainHash} {jToken["blockindex"]} {jToken["txid"]}", Program.LogLevel.Info, ChainHash.ToString());
+           
+            return MysqlConn.InsertSqlBuilder(DataTableName, slist);
+           
         }
     }
 }

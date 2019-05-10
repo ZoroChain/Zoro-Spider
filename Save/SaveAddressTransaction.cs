@@ -17,21 +17,15 @@ namespace Zoro.Spider
             return true;
         }
 
-        public void Save(JToken jObject, uint blockHeight, uint blockTime)
+        public string GetAddressTxSql(string address, string txid, uint blockHeight, uint blockTime)
         {
             List<string> slist = new List<string>();
-            slist.Add(jObject["address"].ToString());
-            slist.Add(jObject["txid"].ToString());
+            slist.Add(address);
+            slist.Add(txid);
             slist.Add(blockHeight.ToString());
             slist.Add(blockTime.ToString());
 
-            Dictionary<string, string> deleteWhere = new Dictionary<string, string>();
-            deleteWhere.Add("addr", jObject["address"].ToString());
-            deleteWhere.Add("blockindex", blockHeight.ToString());
-            deleteWhere.Add("txid", jObject["txid"].ToString());
-
-            MysqlConn.ExecuteDataInsertWithCheck(DataTableName, slist, deleteWhere);
-
+            return MysqlConn.InsertSqlBuilder(DataTableName, slist);
         }
     }
 }

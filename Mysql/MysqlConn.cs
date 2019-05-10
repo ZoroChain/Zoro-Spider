@@ -266,42 +266,42 @@ namespace Zoro.Spider
             }
         }
 
-        public static int ExecuteDataInsert(string tableName, List<string> parameter)
+        public static string InsertSqlBuilder(string tableName, List<string> parameter)
         {
-            MySqlConnection conn = new MySqlConnection(conf);
+            string mysql = $"insert into " + tableName + " values (null,";
+            foreach (string param in parameter)
+            {
+                mysql += "'" + param + "',";
+            }
+            mysql = mysql.Substring(0, mysql.Length - 1);
+            mysql += ");";
 
-            try
-            {
-                //DateTime dt = DateTime.Now;
+            return mysql;
+        }
 
-                conn.Open();
-                string mysql = $"insert into " + tableName + " values (null,";
-                foreach (string param in parameter)
-                {
-                    mysql += "'" + param + "',";
-                }
-                mysql = mysql.Substring(0, mysql.Length - 1);
-                mysql += ");";
-                MySqlCommand mc = new MySqlCommand(mysql, conn);
-                int count = mc.ExecuteNonQuery();
+        /// <summary>
+        /// 修改数据
+        /// </summary>
+        public static string UpdateSqlBuilder(string tableName, Dictionary<string, string> dirs, Dictionary<string, string> where)
+        {
+            string update = $"update " + tableName + " set ";
+            foreach (var dir in dirs)
+            {
+                update += dir.Key + "='" + dir.Value + "',";
+            }
+            update = update.Substring(0, update.Length - 1);
+            if (where.Count != 0)
+                update += " where";
+            foreach (var dir in where)
+            {
+                update += " " + dir.Key + "='" + dir.Value + "'";
+                update += " and";
+            }
+            if (where.Count != 0)
+                update = update.Substring(0, update.Length - 4);
+            update += ";";
 
-                return count;
-            }
-            catch (MySqlException e)
-            {
-                Program.Log($"Error when execute insert with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
-                conn.Close();
-                return ExecuteDataInsert(tableName, parameter);
-            }
-            catch (Exception e)
-            {
-                Program.Log($"Error when execute insert with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
-                throw e;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            return update;
         }
 
         public static int ExecuteDataInsert(string tableName, string sql)
@@ -319,101 +319,11 @@ namespace Zoro.Spider
             {
                 Program.Log($"Error when execute insert with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
                 conn.Close();
-                return ExecuteDataInsert(tableName, sql);
-            }
-            catch (Exception e)
-            {
-                Program.Log($"Error when execute insert with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
                 throw e;
             }
-            finally
-            {
-                conn.Close();
-            }
-        }
-
-        public static int ExecuteDataInsertWithCheck(string tableName, List<string> parameter, Dictionary<string, string> deleteKeys)
-        {
-            MySqlConnection conn = new MySqlConnection(conf);
-
-            try
-            {
-                conn.Open();
-
-                string sql = $"delete from " + tableName + "";
-                if (deleteKeys.Count != 0)
-                    sql += " where";
-                foreach (var dir in deleteKeys)
-                {
-                    sql += " " + dir.Key + "='" + dir.Value + "'";
-                    sql += " and";
-                }
-                if (deleteKeys.Count != 0)
-                    sql = sql.Substring(0, sql.Length - 4);
-                sql += ";";
-
-                sql += $"insert into " + tableName + " values (null,";
-                foreach (string param in parameter)
-                {
-                    sql += "'" + param + "',";
-                }
-                sql = sql.Substring(0, sql.Length - 1);
-                sql += ");";
-                MySqlCommand mc = new MySqlCommand(sql, conn);
-                int count = mc.ExecuteNonQuery();
-
-                return count;
-            }
-            catch (MySqlException e)
-            {
-                Program.Log($"Error when execute insert with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
-                conn.Close();
-                return ExecuteDataInsertWithCheck(tableName, parameter, deleteKeys);
-            }
             catch (Exception e)
             {
                 Program.Log($"Error when execute insert with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
-                throw e;
-            }
-            finally
-            {
-                conn.Close();
-            }
-        }
-
-        /// <summary>
-        /// 修改数据
-        /// </summary>
-        public static int Update(string tableName, Dictionary<string, string> dirs, Dictionary<string, string> where)
-        {
-            MySqlConnection conn = new MySqlConnection(conf);
-
-            try
-            {
-                conn.Open();
-                string update = $"update " + tableName + " set ";
-                foreach (var dir in dirs)
-                {
-                    update += dir.Key + "='" + dir.Value + "',";
-                }
-                update = update.Substring(0, update.Length - 1);
-                if (where.Count != 0)
-                    update += " where";
-                foreach (var dir in where)
-                {
-                    update += " " + dir.Key + "='" + dir.Value + "'";
-                    update += " and";
-                }
-                if (where.Count != 0)
-                    update = update.Substring(0, update.Length - 4);
-                update += ";";
-                MySqlCommand command = new MySqlCommand(update, conn);
-                int count = command.ExecuteNonQuery();
-                return count;
-            }
-            catch (Exception e)
-            {
-                Program.Log($"Error when execute update with {tableName}, reason: {e.Message}", Program.LogLevel.Error);
                 throw e;
             }
             finally
@@ -453,7 +363,7 @@ namespace Zoro.Spider
             }
         }
 
-        public static void SaveAndUpdataHashList(string table, string hashlist)
+        public static string SaveAndUpdataHashList(string table, string hashlist)
         {
             var dir = new Dictionary<string, string>();
             DataTable dt = ExecuteDataSet(table, dir).Tables[0];
@@ -461,24 +371,24 @@ namespace Zoro.Spider
             {
                 var list = new List<string>();
                 list.Add(hashlist);
-                ExecuteDataInsert(table, list);
+               return InsertSqlBuilder(table, list);
             }
             else
             {
                 var set = new Dictionary<string, string>();
                 set.Add("hashlist", hashlist);
-                Update(table, set, dir);
+               return UpdateSqlBuilder(table, set, dir);
             }
         }
 
-        public static void SaveAndUpdataAppChainState(string table, List<string> hashlist)
+        public static string SaveAndUpdataAppChainState(string table, List<string> hashlist)
         {
             var dir = new Dictionary<string, string>();
             dir.Add("hash", hashlist[1]);
             DataTable dt = ExecuteDataSet(table, dir).Tables[0];
             if (dt.Rows.Count == 0)
             {
-                ExecuteDataInsert(table, hashlist);
+                return InsertSqlBuilder(table, hashlist);
             }
             else
             {
@@ -489,7 +399,7 @@ namespace Zoro.Spider
                 set.Add("timestamp", hashlist[4]);
                 set.Add("seedlist", hashlist[5]);
                 set.Add("validators", hashlist[6]);
-                Update(table, set, dir);
+                return UpdateSqlBuilder(table, set, dir);
             }
         }
     }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Zoro.Spider
@@ -23,51 +24,60 @@ namespace Zoro.Spider
             return true;
         }
 
-        public async void SaveAsync(string hash)
+        public Dictionary<string, string> ContractDict = new Dictionary<string, string>();
+
+        public void InitContractDict()
         {
-            JToken result = null;
+            string sql = $"select hash, supportstandard from {DataTableName}";
+            DataTable dt = MysqlConn.ExecuteDataSet(sql).Tables[0];
+            if (dt.Rows.Count > 0)
+            {
+                foreach (DataRow dr in dt.Rows)
+                {
+                    ContractDict[dr["hash"].ToString()] = dr["supportstandard"].ToString();
+                }
+            }
+        }
+
+        public string GetContractInfoSql(string hash, ref Dictionary<string, string> contractDict)
+        {
+            hash = "0x" + hash;
+
+            if (contractDict.ContainsKey(hash))
+                return "";
             try
             {
                 WebClient wc = new WebClient();
                 wc.Proxy = null;
-                result = await GetContractState(wc, ChainHash, hash);
-                string supportedStandard = await GetNEP5Asset(UInt160.Parse(hash));
-                if (result != null && result["message"] == null) {
-                    JToken jToken = result;
-                    Dictionary<string, string> selectWhere = new Dictionary<string, string>();
-                    selectWhere.Add("hash", jToken["hash"].ToString());
-                    DataTable dt = MysqlConn.ExecuteDataSet(DataTableName, selectWhere).Tables[0];
-                    if (dt.Rows.Count != 0)
-                    {
-                        return;
-                    }
+                JToken result = GetContractState(wc, ChainHash, hash).Result;
 
+                if (result != null && result["message"] == null)
+                {
                     List<string> slist = new List<string>();
-                    slist.Add(jToken["hash"].ToString());
-                    slist.Add(jToken["name"].ToString());
-                    slist.Add(jToken["author"].ToString());
-                    slist.Add(jToken["email"].ToString());
-                    slist.Add(jToken["description"].ToString());
+                    slist.Add(result["hash"].ToString());
+                    slist.Add(result["name"].ToString());
+                    slist.Add(result["author"].ToString());
+                    slist.Add(result["email"].ToString());
+                    slist.Add(result["description"].ToString());
+
+                    string supportedStandard = GetSupportedStandards(UInt160.Parse(hash));
+
                     slist.Add(supportedStandard);
-                    MysqlConn.ExecuteDataInsert(DataTableName, slist);
+
+                    contractDict[hash] = supportedStandard;
+
+                    return MysqlConn.InsertSqlBuilder(DataTableName, slist);
                 }
-                    
+
             }
             catch (Exception e)
             {
                 Program.Log($"error occured when call getcontractstate, chain:{ChainHash}, reason:{e.Message}", Program.LogLevel.Error);
-                throw e;
+                Thread.Sleep(3000);
+                GetContractInfoSql(hash, ref contractDict);
             }
-            
-        }
 
-        public string GetSupportedStandard(string contract)
-        {
-            string sql = $"select * from {DataTableName} where hash='{contract}'";
-            DataTable dt = MysqlConn.ExecuteDataSet(sql).Tables[0];
-            if (dt.Rows.Count > 0)
-                return dt.Rows[0]["supportstandard"].ToString();
-            return "Other";
+            return "";
         }
 
         public async Task<JToken> GetContractState(WebClient wc, Zoro.UInt160 ChainHash, string hash)
@@ -83,12 +93,12 @@ namespace Zoro.Spider
             catch (WebException e)
             {
                 Program.Log($"error occured when call getcontractstate, chain:{ChainHash}, reason:{e.Message}", Program.LogLevel.Error);
-                //throw e;
+                Thread.Sleep(3000);
                 return await GetContractState(wc, ChainHash, hash);
             }
         }
 
-        public async Task<string> GetNEP5Asset(UInt160 Contract)
+        public string GetSupportedStandards(UInt160 Contract)
         {
             try
             {
@@ -98,7 +108,7 @@ namespace Zoro.Spider
 
                 JObject jObject;
 
-                var result = await ZoroHelper.InvokeScript(sb.ToArray(), ChainHash.ToString());
+                var result = ZoroHelper.InvokeScript(sb.ToArray(), ChainHash.ToString()).Result;
 
                 jObject = JObject.Parse(result);
 
@@ -116,8 +126,10 @@ namespace Zoro.Spider
             catch (Exception e)
             {
                 Program.Log($"error occured when GetSupportedStandards contract: {Contract}, reason:{e.Message}", Program.LogLevel.Error);
-                return await GetNEP5Asset(Contract);
+                Thread.Sleep(3000);
+                return GetSupportedStandards(Contract);
             }
         }
+
     }
 }

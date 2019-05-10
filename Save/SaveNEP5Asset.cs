@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Net;
 using System.Numerics;
-using System.Threading.Tasks;
 using Neo.VM;
+using System.Data;
+using System.Threading;
 
 namespace Zoro.Spider
 {
@@ -17,41 +18,37 @@ namespace Zoro.Spider
             InitDataTable(TableType.NEP5Asset);
         }
 
+        public List<string> Nep5List = new List<string>();
+
         public override bool CreateTable(string name)
         {
             MysqlConn.CreateTable(TableType.NEP5Asset, name);
             return true;
         }
 
-        public void Save(JToken jToken, string script)
+        public void InitNep5List()
         {
-            string sql = $"select * from {DataTableName} where assetid = '{jToken["assetid"].ToString()}'";
-            
-            bool exist = MysqlConn.CheckExist(sql);
-            if (!exist)
+            string sql = $"select assetid from {DataTableName}";
+            DataTable dt = MysqlConn.ExecuteDataSet(sql).Tables[0];
+            if (dt.Rows.Count > 0)
             {
-                Start(jToken["assetid"].ToString(), script);
+                foreach (DataRow dr in dt.Rows)
+                {
+                    Nep5List.Add(dr["assetid"].ToString());
+                }
             }
         }
 
-        public async void Start(string contract, string script)
-        {
-            if (script.EndsWith(Helper.ZoroNativeNep5Call))
-                await getNativeNEP5Asset(UInt160.Parse(contract));
-            else
-                await getNEP5Asset(UInt160.Parse(contract));        
-        }     
-
-        public async Task getNativeNEP5Asset(UInt160 Contract)
+        public string GetNativeNEP5Asset(UInt160 contract)
         {
             try
             {
                 ScriptBuilder sb = new ScriptBuilder();
 
-                sb.EmitSysCall("Zoro.NativeNEP5.Call", "TotalSupply", Contract);
-                sb.EmitSysCall("Zoro.NativeNEP5.Call", "Name", Contract);
-                sb.EmitSysCall("Zoro.NativeNEP5.Call", "Symbol", Contract);               
-                sb.EmitSysCall("Zoro.NativeNEP5.Call", "Decimals", Contract);
+                sb.EmitSysCall("Zoro.NativeNEP5.Call", "TotalSupply", contract);
+                sb.EmitSysCall("Zoro.NativeNEP5.Call", "Name", contract);
+                sb.EmitSysCall("Zoro.NativeNEP5.Call", "Symbol", contract);               
+                sb.EmitSysCall("Zoro.NativeNEP5.Call", "Decimals", contract);
 
                 string script = Helper.Bytes2HexString(sb.ToArray());
 
@@ -61,7 +58,7 @@ namespace Zoro.Spider
                 {
                     wc.Proxy = null;
                     var url = $"{Settings.Default.RpcUrl}/?jsonrpc=2.0&id=1&method=invokescript&params=['{ChainHash}','{script}']";
-                    var result = await wc.DownloadStringTaskAsync(url);
+                    var result = wc.DownloadStringTaskAsync(url).Result;
                     jObject = IO.Json.JObject.Parse(result);
                 }
 
@@ -73,47 +70,47 @@ namespace Zoro.Spider
                 string symbol = jStack[2]["type"].AsString() == "ByteArray" ? Encoding.UTF8.GetString(Helper.HexString2Bytes(jStack[2]["value"].AsString())) : jStack[2]["value"].AsString();
                 string decimals = jStack[3]["type"].AsString() == "ByteArray" ? BigInteger.Parse(jStack[3]["value"].AsString()).ToString() : jStack[3]["value"].AsString();
 
-                //BCT没有限制，可以增发
+                //BCT 和法币锚定 不限制总量
                 if (symbol == "BCT") { totalSupply = "0"; }
 
                 List<string> slist = new List<string>();
-                slist.Add(Contract.ToString());
+                slist.Add(contract.ToString());
                 slist.Add(totalSupply);
                 slist.Add(name);
                 slist.Add(symbol);
                 slist.Add(decimals);
 
-                MysqlConn.ExecuteDataInsert(DataTableName, slist);              
+                return MysqlConn.InsertSqlBuilder(DataTableName, slist);
 
-                Program.Log($"SaveNEP5Asset {ChainHash} {Contract}", Program.LogLevel.Info, ChainHash.ToString());
             }
             catch (Exception e)
             {
-                Program.Log($"error occured when call invokescript, chainhash:{ChainHash}, nep5contract:{Contract.ToString()}, reason:{e.Message}", Program.LogLevel.Error);
-                throw e;
+                Program.Log($"error occured when call invokescript, chainhash:{ChainHash}, nep5contract:{contract.ToString()}, reason:{e.Message}", Program.LogLevel.Error);
+                Thread.Sleep(3000);
+                return GetNativeNEP5Asset(contract);
             }
         }
 
-        public async Task getNEP5Asset(UInt160 Contract)
+        public string GetNEP5Asset(UInt160 contract)
         {            
             try
             {
                 ScriptBuilder sb = new ScriptBuilder();
 
-                sb.EmitAppCall(Contract, "totalSupply");
-                sb.EmitAppCall(Contract, "name");
-                sb.EmitAppCall(Contract, "symbol");
-                sb.EmitAppCall(Contract, "decimals");
+                sb.EmitAppCall(contract, "totalSupply");
+                sb.EmitAppCall(contract, "name");
+                sb.EmitAppCall(contract, "symbol");
+                sb.EmitAppCall(contract, "decimals");
 
                 JObject jObject;
 
-                var result = await ZoroHelper.InvokeScript(sb.ToArray(), ChainHash.ToString());
+                var result = ZoroHelper.InvokeScript(sb.ToArray(), ChainHash.ToString()).Result;
 
                 jObject = JObject.Parse(result);
                 JArray jStack = jObject["result"]["stack"] as JArray;
 
                 if (jStack[1]["value"].ToString() == "" || jStack[2]["value"].ToString() == "" || jStack[3]["value"].ToString() == "")
-                    return;
+                    return "";
 
                 string totalSupply = new BigInteger(Helper.HexString2Bytes(jStack[0]["value"].ToString())).ToString();
                 string name = Encoding.UTF8.GetString(Helper.HexString2Bytes(jStack[1]["value"].ToString()));
@@ -121,21 +118,21 @@ namespace Zoro.Spider
                 string decimals = BigInteger.Parse(jStack[3]["value"].ToString()).ToString();
 
                 List<string> slist = new List<string>();
-                slist.Add(Contract.ToString());
+                slist.Add(contract.ToString());
                 slist.Add(totalSupply);
                 slist.Add(name);
                 slist.Add(symbol);
                 slist.Add(decimals);
 
-                MysqlConn.ExecuteDataInsert(DataTableName, slist);
-                
-                Program.Log($"SaveNEP5Asset {ChainHash} {Contract}", Program.LogLevel.Info, ChainHash.ToString());
+                return MysqlConn.InsertSqlBuilder(DataTableName, slist);
             }
             catch (Exception e)
             {
-                Program.Log($"error occured when call invokescript, chainhash:{ChainHash}, nep5contract:{Contract.ToString()}, reason:{e.Message}", Program.LogLevel.Error);
-                throw e;
+                Program.Log($"error occured when call invokescript, chainhash:{ChainHash}, nep5contract:{contract.ToString()}, reason:{e.Message}", Program.LogLevel.Error);
+                Thread.Sleep(3000);
+                return GetNEP5Asset(contract);
             }
-        }
+        }        
+
     }
 }

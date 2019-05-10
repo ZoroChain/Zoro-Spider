@@ -7,6 +7,7 @@ namespace Zoro.Spider
     class SaveBlock : SaveBase
     {
         private SaveTransaction trans;
+       
 
         public SaveBlock(UInt160 chainHash)
             : base(chainHash)
@@ -22,7 +23,7 @@ namespace Zoro.Spider
             return true;
         }
 
-        public void Save(WebClient wc, JToken jObject, uint height)
+        public string GetBlockSqlText(WebClient wc, JToken jObject, uint height)
         {
             List<string> slist = new List<string>();
             slist.Add(jObject["hash"].ToString());
@@ -38,21 +39,22 @@ namespace Zoro.Spider
             slist.Add(jObject["tx"].ToString());
             slist.Add((jObject["tx"] as JArray).Count.ToString());
 
-            Dictionary<string, string> deleteWhere = new Dictionary<string, string>();
-            deleteWhere.Add("indexx", jObject["index"].ToString());
-
-            MysqlConn.ExecuteDataInsertWithCheck(DataTableName, slist, deleteWhere);
+            string sql = MysqlConn.InsertSqlBuilder(DataTableName, slist);
             
             uint blockTime = uint.Parse(jObject["time"].ToString());
 
             int numTx = 0;
             foreach (var tx in jObject["tx"])
             {
-                trans.Save(tx, height, blockTime);
+                sql += trans.GetTranSqlText(tx, height, blockTime);
                 numTx++;
             }
 
-            Program.Log($"BlockSaved {ChainHash} height:{height} tx:{numTx}", Program.LogLevel.Warning, ChainHash.ToString());
+            trans.ListClear();
+
+            Program.Log($"GetBlockSqlText {ChainHash} height:{height} tx:{numTx}", Program.LogLevel.Warning, ChainHash.ToString());          
+
+            return sql;
         }
     }
 }

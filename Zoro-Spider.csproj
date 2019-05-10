@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <Reference Include="Zoro">
-      <HintPath>..\Zoro-Cli\zoro-cli\bin\Debug\netcoreapp2.1\publish\Zoro.dll</HintPath>
+      <HintPath>..\A-Zoro\Zoro-Cli\zoro-cli\bin\Debug\netcoreapp2.1\publish\Zoro.dll</HintPath>
     </Reference>
   </ItemGroup>
 
@@ -27,7 +27,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="config.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="config.mainnet.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -40,5 +40,7 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
   </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties config_1dev_1json__JSONSchema="http://json.schemastore.org/bukkit-plugin" /></VisualStudio></ProjectExtensions>
 
 </Project>

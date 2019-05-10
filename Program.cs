@@ -20,7 +20,50 @@ namespace Zoro.Spider
 
         private static LogLevel logLevel = LogLevel.Warning;
         private static object logLock = new object();
-        public static string Config = "config.json";
+        public static string Config = "config.json";        
+
+        static void Main(string[] args)
+        {
+            if (args.Length == 1)
+            {
+                switch (args[0])
+                {
+                    case "--test":
+                        Config = "config.testnet.json";
+                        break;
+                    case "--main":
+                        Config = "config.mainnet.json";
+                        break;
+                    default:
+                        Config = "config.json";
+                        break;
+                }
+            }
+            //C#为了使用并发
+            System.Net.ServicePointManager.DefaultConnectionLimit = 512;
+
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
+            ProjectInfo.head();
+
+            MysqlConn.conf = Settings.Default.MysqlConfig;
+            MysqlConn.dbname = Settings.Default.DataBaseName;
+
+            // 开始抓取根链的数据
+            if (IsMyInterestedChain("Root", "", out int startHeight))
+            {
+                StartChainSpider(UInt160.Zero, startHeight);
+            }
+
+            StartAppChainListSpider();
+
+            //ProjectInfo.tail();
+
+            while (true)
+            {
+                System.Threading.Thread.Sleep(1000);
+            }
+        }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
@@ -54,49 +97,6 @@ namespace Zoro.Spider
             {
                 writer.WriteLine();
                 PrintErrorLogs(writer, ex.InnerException);
-            }
-        }
-
-        static void Main(string[] args)
-        {
-            if (args.Length == 1)
-            {
-                switch (args[0])
-                {
-                    case "--test":
-                        Config = "config.testnet.json";
-                        break;
-                    case "--main":
-                        Config = "config.mainnet.json";
-                        break;
-                    default:
-                        Config = "config.json";
-                        break;
-                }
-            }
-            //C#为了使用并发
-            System.Net.ServicePointManager.DefaultConnectionLimit = 512;
-
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-
-            ProjectInfo.head();
-            
-            MysqlConn.conf = Settings.Default.MysqlConfig;
-            MysqlConn.dbname = Settings.Default.DataBaseName;
-
-            // 开始抓取根链的数据
-            if (IsMyInterestedChain("Root", "", out int startHeight))
-            {
-                StartChainSpider(UInt160.Zero, startHeight);
-            }
-
-            StartAppChainListSpider();
-
-            ProjectInfo.tail();
-
-            while (true)
-            {
-                System.Threading.Thread.Sleep(1000);
             }
         }
 
@@ -213,10 +213,10 @@ namespace Zoro.Spider
         {
             string[] info = new string[] {
                 "*** Start to run "+appName,
-                "*** Auth:lz",
+                "*** Auth:Grip",
                 "*** Version:0.0.0.1",
                 "*** CreateDate:2018-10-25",
-                "*** LastModify:2018-11-14"
+                "*** LastModify:2019-05-09"
             };
             foreach (string ss in info)
             {

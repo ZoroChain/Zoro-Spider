@@ -81,8 +81,6 @@ namespace Zoro.Spider
             return sb.ToString();
         }
 
-        
-
         public static async Task<string> HttpGet(string url)
         {
             using (WebClient wc = new WebClient())
@@ -101,6 +99,6 @@ namespace Zoro.Spider
                 byte[] retdata = await wc.UploadDataTaskAsync(url, "POST", data);
                 return System.Text.Encoding.UTF8.GetString(retdata);
             }
-        }  
+        }
     }
 }
