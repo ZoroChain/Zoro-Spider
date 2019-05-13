@@ -96,18 +96,18 @@ namespace Zoro.Spider
         private string AddMethod(string txid, string code, string method, string contract, uint blockHeight)
         {
             string sql = "";
+            if (!contract.StartsWith("Zoro.") && contract.Length >= 40)
+            {
+                contract = "0x" + contract;
+                sql += contractState.GetContractInfoSql(contract, ref contractState.ContractDict);
+            }
+
             List<string> slist = new List<string>();
             slist.Add(txid);
             slist.Add(code);
             slist.Add(method);
             slist.Add(contract);
-            slist.Add(blockHeight.ToString());
-
-            //长度为 40，说明是调用合约，获取合约信息
-            if (contract.Length >= 40)
-            {
-                sql += contractState.GetContractInfoSql(contract, ref contractState.ContractDict);
-            }
+            slist.Add(blockHeight.ToString());            
 
             sql += txScriptMethod.GetInsertSql(slist);
 

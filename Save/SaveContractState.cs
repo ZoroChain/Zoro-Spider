@@ -41,8 +41,6 @@ namespace Zoro.Spider
 
         public string GetContractInfoSql(string hash, ref Dictionary<string, string> contractDict)
         {
-            hash = "0x" + hash;
-
             if (contractDict.ContainsKey(hash))
                 return "";
             try

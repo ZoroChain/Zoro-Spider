@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <Reference Include="Zoro">
-      <HintPath>..\A-Zoro\Zoro-Cli\zoro-cli\bin\Debug\netcoreapp2.1\publish\Zoro.dll</HintPath>
+      <HintPath>..\Zoro-Cli\zoro-cli\bin\Debug\netcoreapp2.1\publish\Zoro.dll</HintPath>
     </Reference>
   </ItemGroup>
 
